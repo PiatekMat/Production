@@ -4,7 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -19,6 +18,11 @@ class Datatemplate {
     int rprzyj;
     double lenght;
     int repeat;
+    //Kordy każdego paska i teraz będziemy mieli szytsko zapisane
+    public double startX;
+    public double endX;
+    public double startY;
+    public double endY;
 
     public Datatemplate(String JGS,
                         String Przedmiot,
@@ -78,7 +82,6 @@ class Datatemplate {
     }
 }
 
-
 class Dane {
     ArrayList<Datatemplate> Dane = new ArrayList<>();
     public Hashtable<String, Integer> Stanowiska = new Hashtable<>();
@@ -122,7 +125,6 @@ class Dane {
         }
     }
 }
-
 
 class Rysowanie extends JPanel {
     Dane data = new Dane();
