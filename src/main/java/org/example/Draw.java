@@ -6,12 +6,12 @@ import java.util.Enumeration;
 
 public class Draw extends JPanel {
     DataFromCSV data = new DataFromCSV();
-    // === POZYCJA ===
-    int startX = 100;
-    int startY = 50;
+    // === POZYCJA początkowa wykresu ===
+    static final int startX = 100;
+    static final int startY = 50;
     int height = 10;
     // === SKALA ===
-    int scale = 20;
+    static final int scale = 20;
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

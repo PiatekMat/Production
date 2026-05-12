@@ -21,7 +21,17 @@ class Datatemplate {
     public double endX;
     public double startY;
     public double endY;
-
+    public Datatemplate(){
+        this.JGS = null;
+        this.Przedmiot = null;
+        this.op = 0;
+        this.tpz = 0;
+        this.kt = 0;
+        this.lenghtT = 0;
+        this.rprzyj = 0;
+        this.lenght = 0;
+        this.repeat = 0;
+    }
     public Datatemplate(String JGS,
                         String Przedmiot,
                         int op,
@@ -81,8 +91,13 @@ class Datatemplate {
 }
 
 public class DataFromCSV {
+    static final int startX = 100;
+    static final int startY = 50;
+    static final int scale = 20;
     ArrayList<Datatemplate> Dane = new ArrayList<>();
     public Hashtable<String, Integer> Stanowiska = new Hashtable<>();
+    public Hashtable<String, ArrayList<Datatemplate>> DaneSortedByPrzedmiot = new Hashtable<>();
+
     DataFromCSV() {
         try {
 
@@ -114,12 +129,40 @@ public class DataFromCSV {
                     stanowisko = data[0];
                     Stanowiska.put(stanowisko, Integer.parseInt(data[6]));
                 }
+
+                if(DaneSortedByPrzedmiot.containsKey(data[1])){
+                    DaneSortedByPrzedmiot.get(data[1]).add(d);
+                }else{
+                    DaneSortedByPrzedmiot.put(data[1], new ArrayList<Datatemplate>());
+                    DaneSortedByPrzedmiot.get(data[1]).add(d);
+                }
             }
 
             br.close();
 
         } catch(Exception e) {
             e.printStackTrace();
+        }
+    }
+    void addPositions(){
+        for(String key : DaneSortedByPrzedmiot.keySet()){
+            ArrayList<Datatemplate> lista = DaneSortedByPrzedmiot.get(key);
+            Datatemplate Previous = new Datatemplate();
+            for(Datatemplate d : lista) {
+                if(Previous.endX == 0){
+                    d.startX = startX;
+                }else{
+                    if(Previous.getLenght() > d.getLenght()){
+                        d.startX = Previous.endX - (Previous.getLenghtT() * scale);
+                    } else if (Previous.getLenght() < d.getLenght()) {
+                        d.startX = Previous.startX + Previous.tpz;
+                    }
+
+                }
+                d.endX = d.startX + (scale * d.lenght);
+                Previous.endX = d.endX;
+
+            }
         }
     }
 }
