@@ -255,31 +255,74 @@ public class DataFromCSV {
             }
 
 // sortowanie po operacji
-            for(String key : byPart.keySet()) {
+            // ======================================
+// BUDOWANIE KOLEJKI
+// ======================================
 
-                ArrayList<Datatemplate> list =
-                        byPart.get(key);
+            // ======================================
+// KOLEJKA OPERACJI
+// ======================================
 
-                Collections.sort(
-                        list,
-                        new java.util.Comparator<Datatemplate>() {
+            Queue.addAll(Dane);
 
-                            @Override
-                            public int compare(
-                                    Datatemplate a,
-                                    Datatemplate b
-                            ) {
+// ręczne sortowanie
+            for(int i = 0; i < Queue.size(); i++) {
 
-                                return Integer.compare(
-                                        a.getOp(),
-                                        b.getOp()
-                                );
-                            }
+                for(int j = i + 1; j < Queue.size(); j++) {
+
+                    Datatemplate a = Queue.get(i);
+
+                    Datatemplate b = Queue.get(j);
+
+                    boolean swap = false;
+
+                    // ==================================
+                    // 1. PRZEDMIOT
+                    // ==================================
+
+                    if(a.getPrzedmiot()
+                            .compareTo(
+                                    b.getPrzedmiot()
+                            ) > 0) {
+
+                        swap = true;
+                    }
+
+                    // ==================================
+                    // 2. OPERACJA
+                    // ==================================
+
+                    else if(
+                            a.getPrzedmiot()
+                                    .equals(
+                                            b.getPrzedmiot()
+                                    )
+                    ) {
+
+                        if(a.getOp() > b.getOp()) {
+
+                            swap = true;
                         }
-                );
+                    }
 
-                Queue.addAll(list);
+                    // ==================================
+                    // ZAMIANA
+                    // ==================================
+
+                    if(swap) {
+
+                        Queue.set(i, b);
+
+                        Queue.set(j, a);
+                    }
+                }
             }
+
+// ======================================
+// DEBUG
+// ======================================
+
+
 
             br.close();
 
@@ -287,11 +330,5 @@ public class DataFromCSV {
 
             e.printStackTrace();
         }
-        int i = 0;
-        for (Datatemplate d : Queue){
-
-            System.out.println(i++ + " " + d.JGS + " " + d.getPrzedmiot() + " " + String.valueOf(d.op));
-        }
-        System.out.println();
     }
 }

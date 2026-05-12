@@ -79,10 +79,6 @@ public class Draw extends JPanel {
 
             int FirstY = y;
 
-            System.out.println(
-                    "Row start: " + key
-            );
-
             for (int j = 0;
                  j < stanowisko.getIloscStanowisk();
                  j++) {
@@ -138,10 +134,9 @@ public class Draw extends JPanel {
 
             Datatemplate Previous =
                     PreviousByPart.get(
-                            d.getJGS()
-                                    + "_"
-                                    + d.getPrzedmiot()
+                            d.getPrzedmiot()
                     );
+           
 
             StanowiskaTemplate stanowisko =
                     data.Stanowiska.get(
@@ -212,7 +207,7 @@ public class Draw extends JPanel {
                 // =====================================
 
                 if(!znaleziono) {
-                    calculatedStartX = minEnd + scale;
+                    calculatedStartX = minEnd;
 
                     calculatedEndX = calculatedStartX + (d.getLenght() * scale);
                 }
@@ -237,31 +232,25 @@ public class Draw extends JPanel {
 
                 stanowisko.lastEndTime[bestStanowisko] = d.endX;
 
-                if(Previous != null)
+                if(Previous != null){
                     System.out.println(Previous.getPrzedmiot() + " " + Previous.getOp());
-                System.out.println(d.getPrzedmiot());
-            PreviousByPart.put(
-                    d.getJGS()
-                            + "_"
-                            + d.getPrzedmiot(),
+                }else{
+                    System.out.println("null");
+                }
+                //System.out.println(d.getPrzedmiot());
+                PreviousByPart.put(
+                    d.getPrzedmiot(),
                     d
-            );
+                );
             }
         }
-
     void Procesy(Graphics2D g2){
 
         int index = 0;
 
         for(Datatemplate d : data.Queue){
 
-            System.out.println(
-                    index + ". "
-                            + d.Przedmiot + " "
-                            + d.startX + " "
-                            + d.lenght + " "
-                            + d.startY
-            );
+
 
             // =====================================
             // KOLOR
@@ -300,24 +289,35 @@ public class Draw extends JPanel {
 
             g2.fillRect(
                     (int)d.startX,
-                    (int)d.startY,
+                    (int)d.startY + 5,
                     (int)(d.getLenght() * scale),
                     height
             );
+            
 
             // =====================================
             // NUMER OPERACJI
             // =====================================
 
-            g2.setColor(Color.BLACK);
-
-            g2.drawString(
-                    String.valueOf(d.op),
+            g2.setColor(Color.GRAY);
+            g2.fillRect(
                     (int)d.startX,
-                    (int)d.startY - 2
+                    (int)d.startY + 5,
+                    (int)(d.getTpz() * scale),
+                    height
             );
 
-            index++;
+            g2.setColor(Color.BLACK);
+            for (int i = 1; i < d.getKt(); i++) {
+                g2.drawLine(
+                        (int)(d.startX -d.getTpz() + (d.lenghtT * i* scale)),
+                        (int)d.startY+5
+                        ,
+                        (int)(d.startX-d.getTpz() + (d.lenghtT*i* scale)),
+                        (int)d.endY-5
+                );
+            }
+
         }
     }
     void generateStanowiskaLayout() {
