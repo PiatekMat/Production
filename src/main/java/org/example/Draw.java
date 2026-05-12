@@ -2,6 +2,7 @@ package org.example;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Enumeration;
 
 public class Draw extends JPanel {
@@ -113,29 +114,268 @@ public class Draw extends JPanel {
                 );
             }
         }
-        Enumeration<String> k = data.Stanowiska.keys();
         int x = startX;
         int y = startY;
-        while (k.hasMoreElements()) {
-
-            String key = k.nextElement();
-            System.out.println(key + " " + data.Stanowiska.get(key));
-            y += 20;
+        for (int i = 0; i < data.Stanowiska.size(); i++) {
+            y += 30;
             int FirstY = y;
-            for (int i = 0; i <= data.Stanowiska.get(key); i++) {
+            System.out.println("Row start: " + i);
+            for (int j = 0; j < data.Stanowiska.get(i).getIloscStanowisk(); j++) {
                 g2.drawLine(
                         x,
                         y,
                         1500,
                         y
                 );
-                y = y + 16;
+                System.out.println(j +": " + y);
+                data.Stanowiska.get(i).wymiaryStanowisk[j][0] = y;
+                y = y + 20;
+                g2.drawLine(
+                        x,
+                        y,
+                        1500,
+                        y
+                );
+                System.out.println(y);
+                data.Stanowiska.get(i).wymiaryStanowisk[j][1] = y;
             }
             g2.drawString(
-                    key,
+                    data.Stanowiska.get(i).nazwaStanowsika,
                     x-45,
                     ((FirstY + y)/2)
             );
+            g2.drawLine(
+                    x,
+                    FirstY -1,
+                    1500,
+                    FirstY -1
+            );
+            g2.drawLine(
+                    x,
+                    y -1,
+                    1500,
+                    y -1
+            );
+            System.out.println("Row End");
         }
+//        while (k.hasMoreElements()) {
+//
+//            String key = k.nextElement();
+//            System.out.println(key + " " + data.Stanowiska.get(key));
+//            y += 20;
+//            int FirstY = y;
+//            for (int i = 0; i <= data.Stanowiska.get(key); i++) {
+//                g2.drawLine(
+//                        x,
+//                        y,
+//                        1500,
+//                        y
+//                );
+//                y = y + 16;
+//            }
+//            g2.drawString(
+//                    key,
+//                    x-45,
+//                    ((FirstY + y)/2)
+//            );
+//        }
+    }
+    void addPositions(){
+        int idStanowiska = 0;
+        for(String key : data.DaneSortedByPrzedmiot.keySet()) {
+
+            ArrayList<Datatemplate> lista =
+                    data.DaneSortedByPrzedmiot.get(key);
+
+            Datatemplate Previous = null;
+
+            StanowiskaTemplate stanowisko =
+                    data.Stanowiska.get(idStanowiska);
+            idStanowiska++;
+            for(Datatemplate d : lista) {
+
+                // =========================================
+                // WYLICZENIE STARTU
+                // =========================================
+
+                double calculatedStartX;
+
+                if(Previous == null) {
+
+                    calculatedStartX = startX;
+
+                } else {
+
+                    // =====================================
+                    // POPRZEDNI DŁUŻSZY
+                    // =====================================
+
+                    if(Previous.getLenght() > d.getLenght()) {
+
+                        calculatedStartX =
+
+                                Previous.endX -
+
+                                        (Previous.getLenghtT() * scale);
+
+                    }
+
+                    // =====================================
+                    // AKTUALNY DŁUŻSZY
+                    // =====================================
+
+                    else {
+
+                        calculatedStartX =
+
+                                Previous.startX +
+
+                                        (Previous.getTpz() * scale) +
+
+                                        (Previous.getLenghtT() * scale)
+
+                                        -
+
+                                        (d.getTpz() * scale)
+
+                                        -
+
+                                        (d.getLenghtT() * scale);
+                    }
+                }
+
+                double calculatedEndX =
+
+                        calculatedStartX +
+
+                                (d.getLenght() * scale);
+
+                // =========================================
+                // SZUKANIE STANOWISKA
+                // =========================================
+
+                int bestStanowisko = -1;
+
+                double minEnd = Double.MAX_VALUE;
+
+                boolean znaleziono = false;
+
+                for(int stanowiskoIndex = 0;
+                    stanowiskoIndex < stanowisko.getIloscStanowisk();
+                    stanowiskoIndex++) {
+
+                    boolean kolizja = false;
+
+                    ArrayList<TimeSlot> slots =
+
+                            stanowisko.stanowiska
+                                    .get(stanowiskoIndex);
+
+                    // =====================================
+                    // SPRAWDZANIE KOLIZJI
+                    // =====================================
+
+                    for(TimeSlot slot : slots) {
+
+                        boolean collision =
+
+                                calculatedStartX < slot.endX &&
+                                        calculatedEndX > slot.startX;
+
+                        if(collision) {
+
+                            kolizja = true;
+
+                            break;
+                        }
+                    }
+
+                    // =====================================
+                    // WOLNE STANOWISKO
+                    // =====================================
+
+                    if(!kolizja) {
+
+                        bestStanowisko = stanowiskoIndex;
+
+                        znaleziono = true;
+
+                        break;
+                    }
+
+                    // =====================================
+                    // ZAPAMIĘTANIE NAJKRÓTSZEGO
+                    // =====================================
+
+                    if(stanowisko.lastEndTime[stanowiskoIndex]
+                            < minEnd) {
+
+                        minEnd =
+                                stanowisko.lastEndTime
+                                        [stanowiskoIndex];
+
+                        bestStanowisko = stanowiskoIndex;
+                    }
+                }
+
+                // =========================================
+                // JEŚLI NIE MA MIEJSCA
+                // =========================================
+
+                if(!znaleziono) {
+
+                    calculatedStartX =
+
+                            minEnd + scale;
+
+                    calculatedEndX =
+
+                            calculatedStartX +
+
+                                    (d.getLenght() * scale);
+                }
+
+                // =========================================
+                // ZAPIS KOORDYNATÓW
+                // =========================================
+
+                d.startX = calculatedStartX;
+
+                d.endX = calculatedEndX;
+
+                d.startY =
+
+                        startY +
+
+                                (bestStanowisko * 80);
+
+                d.endY = d.startY + 30;
+
+                // =========================================
+                // ZAPIS ZAJĘTOŚCI
+                // =========================================
+
+                stanowisko.stanowiska
+                        .get(bestStanowisko)
+                        .add(
+                                new TimeSlot(
+                                        d.startX,
+                                        d.endX
+                                )
+                        );
+
+                // =========================================
+                // AKTUALIZACJA CZASU KOŃCA
+                // =========================================
+
+                stanowisko.lastEndTime[bestStanowisko] =
+                        d.endX;
+
+                Previous = d;
+            }
+        }
+    }
+    void Procesy(Graphics2D g2){
+
     }
 }

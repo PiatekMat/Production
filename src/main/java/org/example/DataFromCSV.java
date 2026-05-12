@@ -32,6 +32,7 @@ class Datatemplate {
         this.lenght = 0;
         this.repeat = 0;
     }
+
     public Datatemplate(String JGS,
                         String Przedmiot,
                         int op,
@@ -89,13 +90,52 @@ class Datatemplate {
         return repeat;
     }
 }
+class TimeSlot {
+
+    public double startX;
+    public double endX;
+
+    TimeSlot(double startX, double endX) {
+
+        this.startX = startX;
+        this.endX = endX;
+    }
+}
+class StanowiskaTemplate{
+    String nazwaStanowsika;
+    int iloscStanowisk;
+    public int[][] wymiaryStanowisk;
+    public ArrayList<ArrayList<TimeSlot>> stanowiska;
+    public double[] lastEndTime;
+    Hashtable<Integer, ArrayList<Integer>> zajecieStanowisk = new Hashtable<>();
+    StanowiskaTemplate(String nazwaStanowsika, int iloscStanowisk){
+        this.nazwaStanowsika = nazwaStanowsika;
+        this.iloscStanowisk = iloscStanowisk;
+        stanowiska = new ArrayList<>();
+
+        for(int i = 0; i < iloscStanowisk; i++) {
+
+            stanowiska.add(
+                    new ArrayList<>()
+            );
+        }
+
+        lastEndTime = new double[iloscStanowisk];
+    }
+
+    public int getIloscStanowisk() {
+        return iloscStanowisk;
+    }
+}
 
 public class DataFromCSV {
     static final int startX = 100;
     static final int startY = 50;
     static final int scale = 20;
     ArrayList<Datatemplate> Dane = new ArrayList<>();
-    public Hashtable<String, Integer> Stanowiska = new Hashtable<>();
+    // Potrzebuje y stanowisk i x gdzie te stanowiką są zajęte, czyli najlepiej nazwa stanowiska - hash table ilość stanowsik - y - zajajęte x na tych stanowiskach
+    //stanowsika.get("klucz").get(0) - ilość
+    public ArrayList<StanowiskaTemplate> Stanowiska = new ArrayList<>();
     public Hashtable<String, ArrayList<Datatemplate>> DaneSortedByPrzedmiot = new Hashtable<>();
 
     DataFromCSV() {
@@ -109,7 +149,7 @@ public class DataFromCSV {
 
             // pomija nagłówek
             br.readLine();
-            String stanowisko = "";
+            String stanowisko = "";int test = 0;
             while((line = br.readLine()) != null) {
 
                 String[] data = line.split(",");
@@ -125,9 +165,12 @@ public class DataFromCSV {
                         Integer.parseInt(data[8])
                 );
                 Dane.add(d);
-                if(stanowisko != data[0]){
+
+                if(!stanowisko.equals(data[0])){
                     stanowisko = data[0];
-                    Stanowiska.put(stanowisko, Integer.parseInt(data[6]));
+                    Stanowiska.add(new StanowiskaTemplate(stanowisko, Integer.parseInt(data[6])));
+                    test++;
+                    //System.out.println(test);
                 }
 
                 if(DaneSortedByPrzedmiot.containsKey(data[1])){
@@ -136,33 +179,16 @@ public class DataFromCSV {
                     DaneSortedByPrzedmiot.put(data[1], new ArrayList<Datatemplate>());
                     DaneSortedByPrzedmiot.get(data[1]).add(d);
                 }
+
             }
-
             br.close();
-
+            for(StanowiskaTemplate t : Stanowiska){
+                System.out.println(t.wymiaryStanowisk.length);
+            }
+            System.out.println();
         } catch(Exception e) {
             e.printStackTrace();
         }
     }
-    void addPositions(){
-        for(String key : DaneSortedByPrzedmiot.keySet()){
-            ArrayList<Datatemplate> lista = DaneSortedByPrzedmiot.get(key);
-            Datatemplate Previous = new Datatemplate();
-            for(Datatemplate d : lista) {
-                if(Previous.endX == 0){
-                    d.startX = startX;
-                }else{
-                    if(Previous.getLenght() > d.getLenght()){
-                        d.startX = Previous.endX - (Previous.getLenghtT() * scale);
-                    } else if (Previous.getLenght() < d.getLenght()) {
-                        d.startX = Previous.startX + Previous.tpz;
-                    }
 
-                }
-                d.endX = d.startX + (scale * d.lenght);
-                Previous.endX = d.endX;
-
-            }
-        }
-    }
 }
