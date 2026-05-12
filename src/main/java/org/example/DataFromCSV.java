@@ -3,6 +3,7 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
 
 class Datatemplate {
@@ -141,6 +142,8 @@ public class DataFromCSV {
     public Hashtable<String,
             ArrayList<Datatemplate>>
             DaneSortedByJGS = new Hashtable<>();
+    public ArrayList<Datatemplate>
+            Queue = new ArrayList<>();
 
     DataFromCSV() {
 
@@ -222,6 +225,61 @@ public class DataFromCSV {
                         .get(d.JGS)
                         .add(d);
             }
+            // ======================================
+// KOLEJKA OPERACJI
+// ======================================
+
+            Hashtable<String,
+                    ArrayList<Datatemplate>>
+                    byPart = new Hashtable<>();
+
+// grupowanie po przedmiocie
+            for(Datatemplate d : Dane) {
+
+                String groupKey =
+
+                        d.getJGS() +
+                                "_" +
+                                d.getPrzedmiot();
+
+                if(!byPart.containsKey(groupKey)) {
+
+                    byPart.put(
+                            groupKey,
+                            new ArrayList<>()
+                    );
+                }
+
+                byPart.get(groupKey)
+                        .add(d);
+            }
+
+// sortowanie po operacji
+            for(String key : byPart.keySet()) {
+
+                ArrayList<Datatemplate> list =
+                        byPart.get(key);
+
+                Collections.sort(
+                        list,
+                        new java.util.Comparator<Datatemplate>() {
+
+                            @Override
+                            public int compare(
+                                    Datatemplate a,
+                                    Datatemplate b
+                            ) {
+
+                                return Integer.compare(
+                                        a.getOp(),
+                                        b.getOp()
+                                );
+                            }
+                        }
+                );
+
+                Queue.addAll(list);
+            }
 
             br.close();
 
@@ -229,5 +287,11 @@ public class DataFromCSV {
 
             e.printStackTrace();
         }
+        int i = 0;
+        for (Datatemplate d : Queue){
+
+            System.out.println(i++ + " " + d.JGS + " " + d.getPrzedmiot() + " " + String.valueOf(d.op));
+        }
+        System.out.println();
     }
 }
