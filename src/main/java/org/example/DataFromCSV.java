@@ -130,68 +130,104 @@ class StanowiskaTemplate{
 }
 
 public class DataFromCSV {
-    static final int startX = 100;
-    static final int startY = 50;
-    static final int scale = 20;
-    ArrayList<Datatemplate> Dane = new ArrayList<>();
-    // Potrzebuje y stanowisk i x gdzie te stanowiką są zajęte, czyli najlepiej nazwa stanowiska - hash table ilość stanowsik - y - zajajęte x na tych stanowiskach
-    //stanowsika.get("klucz").get(0) - ilość
-    public ArrayList<StanowiskaTemplate> Stanowiska = new ArrayList<>();
-    public Hashtable<String, ArrayList<Datatemplate>> DaneSortedByPrzedmiot = new Hashtable<>();
+    public ArrayList<Datatemplate> Dane =
+            new ArrayList<>();
+
+    // JGS -> stanowisko
+    public Hashtable<String, StanowiskaTemplate>
+            Stanowiska = new Hashtable<>();
+
+    // JGS -> operacje
+    public Hashtable<String,
+            ArrayList<Datatemplate>>
+            DaneSortedByJGS = new Hashtable<>();
 
     DataFromCSV() {
+
         try {
 
-            BufferedReader br = new BufferedReader(
-                    new FileReader("dane.csv")
-            );
+            BufferedReader br =
+                    new BufferedReader(
+                            new FileReader("dane.csv")
+                    );
 
             String line;
 
-            // pomija nagłówek
+            // pominięcie nagłówka
             br.readLine();
-            String stanowisko = "";int test = 0;
-            while((line = br.readLine()) != null) {
 
-                String[] data = line.split(",");
-                Datatemplate d = new Datatemplate(
-                        data[0],
-                        data[1],
-                        Integer.parseInt(data[2]),
-                        Double.parseDouble(data[3]),
-                        Integer.parseInt(data[4]),
-                        Double.parseDouble(data[5]),
-                        Integer.parseInt(data[6]),
-                        Double.parseDouble(data[7]),
-                        Integer.parseInt(data[8])
-                );
-                if(d.lenght == 0)
+            while ((line = br.readLine()) != null) {
+
+                String[] data =
+                        line.split(",");
+
+                Datatemplate d =
+                        new Datatemplate(
+
+                                data[0],
+                                data[1],
+
+                                Integer.parseInt(data[2]),
+
+                                Double.parseDouble(data[3]),
+
+                                Integer.parseInt(data[4]),
+
+                                Double.parseDouble(data[5]),
+
+                                Integer.parseInt(data[6]),
+
+                                Double.parseDouble(data[7]),
+
+                                Integer.parseInt(data[8])
+                        );
+
+                // pomijamy zerowe
+                if (d.lenght == 0)
                     continue;
+
                 Dane.add(d);
 
-                if(!stanowisko.equals(data[0])){
-                    stanowisko = data[0];
-                    Stanowiska.add(new StanowiskaTemplate(stanowisko, Integer.parseInt(data[6])));
-                    test++;
-                    //System.out.println(test);
+                // ==================================
+                // STANOWISKA JGS
+                // ==================================
+
+                if (!Stanowiska.containsKey(d.JGS)) {
+
+                    Stanowiska.put(
+
+                            d.JGS,
+
+                            new StanowiskaTemplate(
+                                    d.JGS,
+                                    d.rprzyj
+                            )
+                    );
                 }
 
-                if(DaneSortedByPrzedmiot.containsKey(data[1])){
-                    DaneSortedByPrzedmiot.get(data[1]).add(d);
-                }else{
-                    DaneSortedByPrzedmiot.put(data[1], new ArrayList<Datatemplate>());
-                    DaneSortedByPrzedmiot.get(data[1]).add(d);
+                // ==================================
+                // SORTOWANIE PO JGS
+                // ==================================
+
+                if (!DaneSortedByJGS
+                        .containsKey(d.JGS)) {
+
+                    DaneSortedByJGS.put(
+                            d.JGS,
+                            new ArrayList<>()
+                    );
                 }
 
+                DaneSortedByJGS
+                        .get(d.JGS)
+                        .add(d);
             }
+
             br.close();
-            for(StanowiskaTemplate t : Stanowiska){
-                //System.out.println(t.wymiaryStanowisk.length);
-            }
-            System.out.println();
-        } catch(Exception e) {
+
+        } catch (Exception e) {
+
             e.printStackTrace();
         }
     }
-
 }
