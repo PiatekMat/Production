@@ -119,7 +119,8 @@ class StanowiskaTemplate{
                     new ArrayList<>()
             );
         }
-
+        wymiaryStanowisk =
+                new int[iloscStanowisk][2];
         lastEndTime = new double[iloscStanowisk];
     }
 
@@ -164,6 +165,8 @@ public class DataFromCSV {
                         Double.parseDouble(data[7]),
                         Integer.parseInt(data[8])
                 );
+                if(d.lenght == 0)
+                    continue;
                 Dane.add(d);
 
                 if(!stanowisko.equals(data[0])){
@@ -183,7 +186,7 @@ public class DataFromCSV {
             }
             br.close();
             for(StanowiskaTemplate t : Stanowiska){
-                System.out.println(t.wymiaryStanowisk.length);
+                //System.out.println(t.wymiaryStanowisk.length);
             }
             System.out.println();
         } catch(Exception e) {

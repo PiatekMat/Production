@@ -13,65 +13,17 @@ public class Draw extends JPanel {
     int height = 10;
     // === SKALA ===
     static final int scale = 20;
+    Draw(){
+        generateStanowiskaLayout();
+        addPositions();
+
+    }
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-
         Graphics2D g2 = (Graphics2D) g;
-
-        /*// === DANE OPERACJI ===
-        double tpz = 0.2;
-        double ntTj = 2.28;
-        int kt = 2;
-
-        // === SZEROKOŚCI ===
-        int tpzWidth = (int) (tpz * scale);
-        int partWidth = (int) (ntTj * scale);
-
-        // =========================
-        // TPZ
-        // =========================
-
-        g2.setColor(Color.GRAY);
-
-        g2.fillRect(
-                startX,
-                startY,
-                tpzWidth,
-                height
-        );
-
-        // =========================
-        // PARTIE TRANSPORTOWE
-        // =========================
-
-        g2.setColor(Color.BLUE);
-
-        for (int i = 0; i < kt; i++) {
-
-            int x = startX + tpzWidth + (i * partWidth);
-
-            g2.fillRect(
-                    x,
-                    startY,
-                    partWidth,
-                    height
-            );
-        }
-
-        // =========================
-        // TEKST
-        // =========================
-
-        g2.setColor(Color.BLACK);
-
-        g2.drawString(
-                "Wał z gwintem",
-                20,
-                startY + 25
-        );*/
         Ramy(g2);
-
+        Procesy(g2);
     }
 
     void Ramy(Graphics2D g2){
@@ -192,6 +144,7 @@ public class Draw extends JPanel {
             StanowiskaTemplate stanowisko =
                     data.Stanowiska.get(idStanowiska);
             idStanowiska++;
+
             for(Datatemplate d : lista) {
 
                 // =========================================
@@ -344,12 +297,12 @@ public class Draw extends JPanel {
                 d.endX = calculatedEndX;
 
                 d.startY =
+                        stanowisko.wymiaryStanowisk
+                                [bestStanowisko][0];
 
-                        startY +
-
-                                (bestStanowisko * 80);
-
-                d.endY = d.startY + 30;
+                d.endY =
+                        stanowisko.wymiaryStanowisk
+                                [bestStanowisko][1];
 
                 // =========================================
                 // ZAPIS ZAJĘTOŚCI
@@ -376,6 +329,62 @@ public class Draw extends JPanel {
         }
     }
     void Procesy(Graphics2D g2){
+        for(String key : data.DaneSortedByPrzedmiot.keySet()){
+            ArrayList<Datatemplate> lista =
+                    data.DaneSortedByPrzedmiot.get(key);
+            for (int i = 0; i < lista.size(); i++) {
+                System.out.println(i + ". " + lista.get(i).Przedmiot + " " + lista.get(i).startX + " " + lista.get(i).lenght + " " + lista.get(i).startY );
+                switch (lista.get(i).Przedmiot){
+                    case "Wał z gwintem":
+                        g2.setColor(Color.BLUE);
+                        break;
+                    case "Trzepień":
+                        g2.setColor(Color.PINK);
+                        break;
+                    case "Wałek z gwinten":
+                        g2.setColor(Color.GREEN);
+                        break;
+                    case "Wałek":
+                        g2.setColor(Color.YELLOW);
+                        break;
+                    case "Tuleja":
+                        g2.setColor(Color.RED);
+                        break;
 
+                }
+                g2.fillRect(
+                        (int)lista.get(i).startX,
+                        (int)lista.get(i).startY,
+                        (int)lista.get(i).getLenght() *scale,
+                        height
+                );
+            }
+
+        }
+    }
+    void generateStanowiskaLayout() {
+
+        int y = startY;
+
+        for(int i = 0;
+            i < data.Stanowiska.size();
+            i++) {
+
+            y += 30;
+
+            StanowiskaTemplate stanowisko =
+                    data.Stanowiska.get(i);
+
+            for(int j = 0;
+                j < stanowisko.getIloscStanowisk();
+                j++) {
+
+                stanowisko.wymiaryStanowisk[j][0] = y;
+
+                y += 20;
+
+                stanowisko.wymiaryStanowisk[j][1] = y;
+            }
+        }
     }
 }
