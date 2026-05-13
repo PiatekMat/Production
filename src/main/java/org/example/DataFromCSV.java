@@ -3,56 +3,101 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Hashtable;
 
 class Datatemplate {
 
     String JGS;
     String Przedmiot;
+
     int op;
+
     double tpz;
+
     int kt;
+
     double lenghtT;
+
     int rprzyj;
+
     double lenght;
+
     int repeat;
-    //Kordy każdego paska i teraz będziemy mieli szytsko zapisane
+
+    // =====================================
+    // HARMONOGRAM
+    // =====================================
+
     public double startX;
+
     public double endX;
+
     public double startY;
+
     public double endY;
-    public Datatemplate(){
+
+    public int stanowiskoID;
+
+    public int repeatID;
+
+    Datatemplate(){
+
         this.JGS = null;
+
         this.Przedmiot = null;
+
         this.op = 0;
+
         this.tpz = 0;
+
         this.kt = 0;
+
         this.lenghtT = 0;
+
         this.rprzyj = 0;
+
         this.lenght = 0;
+
         this.repeat = 0;
+
+        this.repeatID = 0;
+
+        this.stanowiskoID = -1;
     }
 
-    public Datatemplate(String JGS,
-                        String Przedmiot,
-                        int op,
-                        double tpz,
-                        int kt,
-                        double lenghtT,
-                        int rprzyj,
-                        double lenght,
-                        int repeat) {
+    Datatemplate(
+            String JGS,
+            String Przedmiot,
+            int op,
+            double tpz,
+            int kt,
+            double lenghtT,
+            int rprzyj,
+            double lenght,
+            int repeat
+    ) {
 
         this.JGS = JGS;
+
         this.Przedmiot = Przedmiot;
+
         this.op = op;
+
         this.tpz = tpz;
+
         this.kt = kt;
+
         this.lenghtT = lenghtT;
+
         this.rprzyj = rprzyj;
+
         this.lenght = lenght;
+
         this.repeat = repeat;
+
+        this.repeatID = 0;
+
+        this.stanowiskoID = -1;
     }
 
     public String getJGS() {
@@ -91,59 +136,55 @@ class Datatemplate {
         return repeat;
     }
 }
-class TimeSlot {
 
-    public double startX;
-    public double endX;
+// =========================================
+// STANOWISKA
+// =========================================
 
-    TimeSlot(double startX, double endX) {
+class StanowiskaTemplate {
 
-        this.startX = startX;
-        this.endX = endX;
-    }
-}
-class StanowiskaTemplate{
     String nazwaStanowsika;
+
     int iloscStanowisk;
+
     public int[][] wymiaryStanowisk;
-    public ArrayList<ArrayList<TimeSlot>> stanowiska;
-    public double[] lastEndTime;
-    Hashtable<Integer, ArrayList<Integer>> zajecieStanowisk = new Hashtable<>();
-    StanowiskaTemplate(String nazwaStanowsika, int iloscStanowisk){
-        this.nazwaStanowsika = nazwaStanowsika;
-        this.iloscStanowisk = iloscStanowisk;
-        stanowiska = new ArrayList<>();
 
-        for(int i = 0; i < iloscStanowisk; i++) {
+    StanowiskaTemplate(
+            String nazwaStanowsika,
+            int iloscStanowisk
+    ) {
 
-            stanowiska.add(
-                    new ArrayList<>()
-            );
-        }
+        this.nazwaStanowsika =
+                nazwaStanowsika;
+
+        this.iloscStanowisk =
+                iloscStanowisk;
+
         wymiaryStanowisk =
                 new int[iloscStanowisk][2];
-        lastEndTime = new double[iloscStanowisk];
     }
 
     public int getIloscStanowisk() {
+
         return iloscStanowisk;
     }
 }
 
+// =========================================
+// CSV
+// =========================================
+
 public class DataFromCSV {
-    public ArrayList<Datatemplate> Dane =
-            new ArrayList<>();
 
-    // JGS -> stanowisko
-    public Hashtable<String, StanowiskaTemplate>
-            Stanowiska = new Hashtable<>();
+    public ArrayList<Datatemplate>
+            Dane = new ArrayList<>();
 
-    // JGS -> operacje
-    public Hashtable<String,
-            ArrayList<Datatemplate>>
-            DaneSortedByJGS = new Hashtable<>();
     public ArrayList<Datatemplate>
             Queue = new ArrayList<>();
+
+    public Hashtable<String,
+            StanowiskaTemplate>
+            Stanowiska = new Hashtable<>();
 
     DataFromCSV() {
 
@@ -151,15 +192,25 @@ public class DataFromCSV {
 
             BufferedReader br =
                     new BufferedReader(
-                            new FileReader("dane.csv")
+                            new FileReader(
+                                    "dane.csv"
+                            )
                     );
 
             String line;
 
-            // pominięcie nagłówka
+            // =================================
+            // POMINIĘCIE NAGŁÓWKA
+            // =================================
+
             br.readLine();
 
-            while ((line = br.readLine()) != null) {
+            // =================================
+            // WCZYTYWANIE
+            // =================================
+
+            while((line = br.readLine())
+                    != null) {
 
                 String[] data =
                         line.split(",");
@@ -168,34 +219,54 @@ public class DataFromCSV {
                         new Datatemplate(
 
                                 data[0],
+
                                 data[1],
 
-                                Integer.parseInt(data[2]),
+                                Integer.parseInt(
+                                        data[2]
+                                ),
 
-                                Double.parseDouble(data[3]),
+                                Double.parseDouble(
+                                        data[3]
+                                ),
 
-                                Integer.parseInt(data[4]),
+                                Integer.parseInt(
+                                        data[4]
+                                ),
 
-                                Double.parseDouble(data[5]),
+                                Double.parseDouble(
+                                        data[5]
+                                ),
 
-                                Integer.parseInt(data[6]),
+                                Integer.parseInt(
+                                        data[6]
+                                ),
 
-                                Double.parseDouble(data[7]),
+                                Double.parseDouble(
+                                        data[7]
+                                ),
 
-                                Integer.parseInt(data[8])
+                                Integer.parseInt(
+                                        data[8]
+                                )
                         );
 
-                // pomijamy zerowe
-                if (d.lenght == 0)
+                // =============================
+                // POMIJANIE ZEROWYCH
+                // =============================
+
+                if(d.lenght == 0)
                     continue;
 
                 Dane.add(d);
 
-                // ==================================
-                // STANOWISKA JGS
-                // ==================================
+                // =============================
+                // STANOWISKA
+                // =============================
 
-                if (!Stanowiska.containsKey(d.JGS)) {
+                if(!Stanowiska.containsKey(
+                        d.JGS
+                )) {
 
                     Stanowiska.put(
 
@@ -207,126 +278,151 @@ public class DataFromCSV {
                             )
                     );
                 }
-
-                // ==================================
-                // SORTOWANIE PO JGS
-                // ==================================
-
-                if (!DaneSortedByJGS
-                        .containsKey(d.JGS)) {
-
-                    DaneSortedByJGS.put(
-                            d.JGS,
-                            new ArrayList<>()
-                    );
-                }
-
-                DaneSortedByJGS
-                        .get(d.JGS)
-                        .add(d);
             }
-            // ======================================
-// KOLEJKA OPERACJI
-// ======================================
+
+            // =================================
+            // GRUPOWANIE PO PRZEDMIOCIE
+            // =================================
 
             Hashtable<String,
                     ArrayList<Datatemplate>>
-                    byPart = new Hashtable<>();
+                    byPart =
+                    new Hashtable<>();
 
-// grupowanie po przedmiocie
             for(Datatemplate d : Dane) {
 
-                String groupKey =
-
-                        d.getJGS() +
-                                "_" +
-                                d.getPrzedmiot();
-
-                if(!byPart.containsKey(groupKey)) {
+                if(!byPart.containsKey(
+                        d.getPrzedmiot()
+                )) {
 
                     byPart.put(
-                            groupKey,
+
+                            d.getPrzedmiot(),
+
                             new ArrayList<>()
                     );
                 }
 
-                byPart.get(groupKey)
-                        .add(d);
+                byPart.get(
+                        d.getPrzedmiot()
+                ).add(d);
             }
 
-// sortowanie po operacji
-            // ======================================
-// BUDOWANIE KOLEJKI
-// ======================================
+            // =================================
+            // BUDOWANIE KOLEJKI
+            // =================================
 
-            // ======================================
-// KOLEJKA OPERACJI
-// ======================================
+            for(String key :
+                    byPart.keySet()) {
 
-            Queue.addAll(Dane);
+                ArrayList<Datatemplate>
+                        list =
+                        byPart.get(key);
 
-// ręczne sortowanie
-            for(int i = 0; i < Queue.size(); i++) {
+                // =============================
+                // BUBBLE SORT
+                // =============================
 
-                for(int j = i + 1; j < Queue.size(); j++) {
+                for(int i = 0;
+                    i < list.size();
+                    i++) {
 
-                    Datatemplate a = Queue.get(i);
+                    for(int j = i + 1;
+                        j < list.size();
+                        j++) {
 
-                    Datatemplate b = Queue.get(j);
+                        if(
+                                list.get(i).getOp()
 
-                    boolean swap = false;
+                                        >
 
-                    // ==================================
-                    // 1. PRZEDMIOT
-                    // ==================================
+                                        list.get(j).getOp()
+                        ) {
 
-                    if(a.getPrzedmiot()
-                            .compareTo(
-                                    b.getPrzedmiot()
-                            ) > 0) {
+                            Datatemplate temp =
+                                    list.get(i);
 
-                        swap = true;
-                    }
+                            list.set(
+                                    i,
+                                    list.get(j)
+                            );
 
-                    // ==================================
-                    // 2. OPERACJA
-                    // ==================================
-
-                    else if(
-                            a.getPrzedmiot()
-                                    .equals(
-                                            b.getPrzedmiot()
-                                    )
-                    ) {
-
-                        if(a.getOp() > b.getOp()) {
-
-                            swap = true;
+                            list.set(
+                                    j,
+                                    temp
+                            );
                         }
                     }
+                }
 
-                    // ==================================
-                    // ZAMIANA
-                    // ==================================
+                // =============================
+                // REPEAT
+                // =============================
 
-                    if(swap) {
+                int repeat =
+                        list.get(0)
+                                .getRepeat();
 
-                        Queue.set(i, b);
+                for(int r = 0;
+                    r < repeat;
+                    r++) {
 
-                        Queue.set(j, a);
+                    for(Datatemplate d :
+                            list) {
+
+                        Datatemplate copy =
+                                new Datatemplate(
+
+                                        d.JGS,
+
+                                        d.Przedmiot,
+
+                                        d.op,
+
+                                        d.tpz,
+
+                                        d.kt,
+
+                                        d.lenghtT,
+
+                                        d.rprzyj,
+
+                                        d.lenght,
+
+                                        d.repeat
+                                );
+
+                        copy.repeatID = r;
+
+                        Queue.add(copy);
                     }
                 }
             }
 
-// ======================================
-// DEBUG
-// ======================================
+            // =================================
+            // DEBUG
+            // =================================
 
+            for(Datatemplate d : Queue) {
 
+                System.out.println(
+
+                        d.getPrzedmiot()
+                                + " "
+
+                                + d.getOp()
+                                + " "
+
+                                + d.getJGS()
+                                + " "
+
+                                + d.repeatID
+                );
+            }
 
             br.close();
 
-        } catch (Exception e) {
+        } catch(Exception e) {
 
             e.printStackTrace();
         }

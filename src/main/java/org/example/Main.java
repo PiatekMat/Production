@@ -10,14 +10,31 @@ import java.util.Hashtable;
 public class Main{
 
     public static void main(String[] args) {
-
-        JFrame frame = new JFrame("Production Scheduler");
+        JFrame frame =
+                new JFrame(
+                        "Production Scheduler"
+                );
 
         frame.setSize(1200, 700);
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(
+                JFrame.EXIT_ON_CLOSE
+        );
 
-        frame.add(new Draw());
+// =====================================
+// PANEL
+// =====================================
+
+        Draw draw = new Draw();
+
+// =====================================
+// SCROLL
+// =====================================
+
+        JScrollPane scrollPane =
+                new JScrollPane(draw);
+
+        frame.add(scrollPane);
 
         frame.setVisible(true);
     }

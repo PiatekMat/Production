@@ -8,6 +8,8 @@ import java.util.Hashtable;
 
 public class Draw extends JPanel {
     DataFromCSV data = new DataFromCSV();
+    static final int windowWidth = 5000;
+    static final int windowHeight = 5000;
     // === POZYCJA początkowa wykresu ===
     static final int startX = 100;
     static final int startY = 50;
@@ -15,6 +17,12 @@ public class Draw extends JPanel {
     // === SKALA ===
     static final int scale = 20;
     Draw(){
+        setPreferredSize(
+                new Dimension(
+                        windowWidth,
+                        windowHeight
+                )
+        );
         generateStanowiskaLayout();
         addPositions();
 
@@ -32,18 +40,16 @@ public class Draw extends JPanel {
         // OŚ CZASU
         // =========================
         int day = 0;
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < windowWidth; i++) {
 
             int x = startX + (i * scale);
-            int y = startY + (i * 16);
 
             g2.drawLine(
                     x,
                     50,
                     x,
-                    1000
+                    windowHeight
             );
-
 
             g2.drawString(
                     String.valueOf(i),
@@ -52,7 +58,6 @@ public class Draw extends JPanel {
             );
 
             if(i % 16 == 0){
-
                 g2.drawString(
                         String.format("Dzien %d", day),
                         x - 10,
@@ -63,30 +68,25 @@ public class Draw extends JPanel {
                         x+1,
                         50,
                         x+1,
-                        1000
+                        windowHeight
                 );
             }
         }
         int x = startX;
         int y = startY;
-        for(String key :
-                data.Stanowiska.keySet()) {
+        for(String key : data.Stanowiska.keySet()) {
 
-            StanowiskaTemplate stanowisko =
-                    data.Stanowiska.get(key);
+            StanowiskaTemplate stanowisko = data.Stanowiska.get(key);
 
             y += 30;
 
             int FirstY = y;
 
-            for (int j = 0;
-                 j < stanowisko.getIloscStanowisk();
-                 j++) {
-
+            for (int j = 0; j < stanowisko.getIloscStanowisk(); j++) {
                 g2.drawLine(
                         x,
                         y,
-                        1500,
+                        windowWidth,
                         y
                 );
                 y = y + 20;
@@ -94,7 +94,7 @@ public class Draw extends JPanel {
                 g2.drawLine(
                         x,
                         y,
-                        1500,
+                        windowWidth,
                         y
                 );
             }
@@ -108,14 +108,14 @@ public class Draw extends JPanel {
             g2.drawLine(
                     x,
                     FirstY - 1,
-                    1500,
+                    windowWidth,
                     FirstY - 1
             );
 
             g2.drawLine(
                     x,
                     y - 1,
-                    1500,
+                    windowWidth,
                     y - 1
             );
         }
@@ -126,136 +126,263 @@ public class Draw extends JPanel {
 
     void addPositions(){
 
-        Hashtable<String, Datatemplate>
-                PreviousByPart =
-                new Hashtable<>();
+        // ======================================
+        // ITERACJA PO KOLEJCE
+        // ======================================
 
-        for(Datatemplate d : data.Queue) {
+        for(int currentIndex = 0;
+            currentIndex < data.Queue.size();
+            currentIndex++) {
 
-            Datatemplate Previous =
-                    PreviousByPart.get(
-                            d.getPrzedmiot()
-                    );
-           
+            Datatemplate d =
+                    data.Queue.get(currentIndex);
+
+            // ==================================
+            // SZUKANIE PREVIOUS
+            // ==================================
+
+            Datatemplate previous = null;
+
+            for(int i = currentIndex - 1; i >= 0; i--) {
+                Datatemplate prev = data.Queue.get(i);
+
+                // ten sam przedmiot
+                // oraz ten sam repeatID
+
+                if(prev.getPrzedmiot().equals(d.getPrzedmiot())
+                        && prev.repeatID == d.repeatID) {
+                    previous = prev;
+                    break;
+                }
+            }
+
+            // ==================================
+            // WYLICZENIE STARTU
+            // ==================================
+
+            double calculatedStartX;
+
+            if(previous == null) {
+
+                calculatedStartX = startX;
+
+            } else {
+
+                // ==============================
+                // POPRZEDNI DŁUŻSZY
+                // ==============================
+
+                if(previous.getLenght()
+                        > d.getLenght()) {
+
+                    calculatedStartX = previous.endX - (previous.getLenghtT() * scale) + scale;
+                }
+
+                // ==============================
+                // AKTUALNY DŁUŻSZY
+                // ==============================
+
+                else {
+                    calculatedStartX =
+                            previous.startX + (previous.getTpz() * scale) +
+                                    (previous.getLenghtT() * scale) -
+                                    (d.getTpz() * scale) + scale;
+                }
+            }
+
+            double calculatedEndX = calculatedStartX + (d.getLenght() * scale);
+
+            // ==================================
+            // SZUKANIE STANOWISKA
+            // ==================================
 
             StanowiskaTemplate stanowisko =
                     data.Stanowiska.get(
                             d.getJGS()
                     );
-                // =====================================
-                // WYLICZENIE STARTU
-                // =====================================
-                double calculatedStartX;
-                if(Previous == null) {
-                    calculatedStartX = startX;
-                } else {
-                    // =================================
-                    // POPRZEDNI DŁUŻSZY
-                    // =================================
-                    if(Previous.getLenght() > d.getLenght()) {
-                        calculatedStartX = Previous.endX - (Previous.getLenghtT() * scale) + scale;
-                    }
-                    // =================================
-                    // AKTUALNY DŁUŻSZY
-                    // =================================
-                    else {
-                        calculatedStartX = Previous.startX + (Previous.getTpz() * scale) + (Previous.getLenghtT() * scale) - (d.getTpz() * scale) + scale;
-                    }
-                }
 
-                double calculatedEndX = calculatedStartX + (d.getLenght() * scale);
-                // =====================================
-                // SZUKANIE STANOWISKA
-                // =====================================
-                int bestStanowisko = -1;
-                double minEnd = Double.MAX_VALUE;
-                boolean znaleziono = false;
-                for(int stanowiskoIndex = 0; stanowiskoIndex < stanowisko.getIloscStanowisk(); stanowiskoIndex++) {
-                    boolean kolizja = false;
-                    ArrayList<TimeSlot> slots = stanowisko.stanowiska.get(stanowiskoIndex);
-                    // =================================
-                    // SPRAWDZANIE KOLIZJI
-                    // =================================
-                    for(TimeSlot slot : slots) {
-                        boolean collision = calculatedStartX < slot.endX && calculatedEndX > slot.startX;
-                        if(collision) {
-                            kolizja = true;
-                            break;
+            int bestStanowisko = -1;
+
+            double bestEnd = Double.MAX_VALUE;
+
+            // ==================================
+            // ITERACJA PO STANOWISKACH
+            // ==================================
+
+            for(int stanowiskoID = 0;
+                stanowiskoID
+                        < stanowisko.getIloscStanowisk();
+                stanowiskoID++) {
+
+                boolean collision = false;
+
+                double lastEnd = startX;
+
+                // ==============================
+                // SPRAWDZANIE KOLIZJI
+                // ==============================
+
+                for(Datatemplate placed :
+                        data.Queue) {
+
+                    // pomijamy siebie
+                    if(placed == d)
+                        continue;
+
+                    // tylko ustawione elementy
+                    if(placed.endX == 0)
+                        continue;
+
+                    // tylko ten sam JGS
+                    if(!placed.getJGS()
+                            .equals(
+                                    d.getJGS()
+                            ))
+                        continue;
+
+                    // tylko to samo stanowisko
+                    if(placed.stanowiskoID
+                            != stanowiskoID)
+                        continue;
+
+                    boolean overlap =
+
+                            calculatedStartX
+                                    < placed.endX
+
+                                    &&
+
+                                    calculatedEndX
+                                            > placed.startX;
+
+                    if(overlap) {
+
+                        collision = true;
+
+                        // zapamiętaj koniec
+                        if(placed.endX > lastEnd) {
+
+                            lastEnd =
+                                    placed.endX;
                         }
                     }
-                    // =================================
-                    // WOLNE STANOWISKO
-                    // =================================
-                    if(!kolizja) {
-                        bestStanowisko = stanowiskoIndex;
-                        znaleziono = true;
+                }
+
+                // ==============================
+                // WOLNE STANOWISKO
+                // ==============================
+
+                if(!collision) {
+
+                    bestStanowisko =
+                            stanowiskoID;
+
+                    break;
+                }
+
+                // ==============================
+                // PRZESUNIĘCIE
+                // ==============================
+
+                if(lastEnd < bestEnd) {
+
+                    bestEnd = lastEnd;
+
+                    bestStanowisko =
+                            stanowiskoID;
+                }
+            }
+
+            // ==================================
+            // JEŚLI BRAK MIEJSCA
+            // ==================================
+
+            boolean foundPlace = false;
+
+            while(!foundPlace) {
+
+                foundPlace = true;
+
+                for(Datatemplate placed :
+                        data.Queue) {
+
+                    if(placed == d)
+                        continue;
+
+                    if(placed.endX == 0)
+                        continue;
+
+                    // tylko ten sam JGS
+                    if(!placed.getJGS()
+                            .equals(
+                                    d.getJGS()
+                            ))
+                        continue;
+
+                    // tylko to samo stanowisko
+                    if(placed.stanowiskoID
+                            != bestStanowisko)
+                        continue;
+
+                    boolean overlap =
+
+                            calculatedStartX
+                                    < placed.endX
+
+                                    &&
+
+                                    calculatedEndX
+                                            > placed.startX;
+
+                    if(overlap) {
+
+                        // =====================
+                        // PRZESUŃ ZA ELEMENT
+                        // =====================
+
+                        calculatedStartX =
+                                placed.endX;
+
+                        calculatedEndX =
+                                calculatedStartX
+                                        +
+                                        (d.getLenght()
+                                                * scale);
+
+                        foundPlace = false;
+
                         break;
                     }
-
-                    // =================================
-                    // ZAPAMIĘTANIE
-                    // =================================
-
-                    if(stanowisko.lastEndTime[stanowiskoIndex] < minEnd) {
-                        minEnd = stanowisko.lastEndTime[stanowiskoIndex];
-                        bestStanowisko = stanowiskoIndex;
-                    }
                 }
-
-                // =====================================
-                // JEŚLI BRAK MIEJSCA
-                // =====================================
-
-                if(!znaleziono) {
-                    calculatedStartX = minEnd;
-
-                    calculatedEndX = calculatedStartX + (d.getLenght() * scale);
-                }
-
-                // =====================================
-                // ZAPIS KOORDYNATÓW
-                // =====================================
-                d.startX = calculatedStartX;
-                d.endX = calculatedEndX;
-                d.startY = stanowisko.wymiaryStanowisk[bestStanowisko][0];
-                d.endY = stanowisko.wymiaryStanowisk[bestStanowisko][1];
-
-                // =====================================
-                // ZAPIS ZAJĘTOŚCI
-                // =====================================
-
-                stanowisko.stanowiska.get(bestStanowisko).add(new TimeSlot(d.startX, d.endX));
-
-                // =====================================
-                // AKTUALIZACJA CZASU
-                // =====================================
-
-                stanowisko.lastEndTime[bestStanowisko] = d.endX;
-
-                if(Previous != null){
-                    System.out.println(Previous.getPrzedmiot() + " " + Previous.getOp());
-                }else{
-                    System.out.println("null");
-                }
-                //System.out.println(d.getPrzedmiot());
-                PreviousByPart.put(
-                    d.getPrzedmiot(),
-                    d
-                );
             }
+
+            // ==================================
+            // ZAPIS
+            // ==================================
+
+            d.startX = calculatedStartX;
+
+            d.endX = calculatedEndX;
+
+            d.stanowiskoID =
+                    bestStanowisko;
+
+            d.startY =
+                    stanowisko
+                            .wymiaryStanowisk
+                            [bestStanowisko][0];
+
+            d.endY =
+                    stanowisko
+                            .wymiaryStanowisk
+                            [bestStanowisko][1];
         }
+    }
     void Procesy(Graphics2D g2){
-
-        int index = 0;
-
         for(Datatemplate d : data.Queue){
-
-
-
             // =====================================
             // KOLOR
             // =====================================
-
             switch (d.Przedmiot){
 
                 case "Wał z gwintem":
@@ -321,28 +448,14 @@ public class Draw extends JPanel {
         }
     }
     void generateStanowiskaLayout() {
-
         int y = startY;
-
-        for(String key :
-                data.Stanowiska.keySet()) {
-
+        for(String key : data.Stanowiska.keySet()) {
             y += 30;
-
-            StanowiskaTemplate stanowisko =
-                    data.Stanowiska.get(key);
-
-            for(int j = 0;
-                j < stanowisko.getIloscStanowisk();
-                j++) {
-
-                stanowisko
-                        .wymiaryStanowisk[j][0] = y;
-
+            StanowiskaTemplate stanowisko = data.Stanowiska.get(key);
+            for(int j = 0; j < stanowisko.getIloscStanowisk(); j++) {
+                stanowisko.wymiaryStanowisk[j][0] = y;
                 y += 20;
-
-                stanowisko
-                        .wymiaryStanowisk[j][1] = y;
+                stanowisko.wymiaryStanowisk[j][1] = y;
             }
         }
     }
