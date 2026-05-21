@@ -3,8 +3,11 @@ package org.example;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Draw extends JPanel {
     DataFromCSV data = new DataFromCSV();
@@ -16,6 +19,11 @@ public class Draw extends JPanel {
     int height = 10;
     // === SKALA ===
     static final int scale = 20;
+
+    AtomicBoolean found =
+            new AtomicBoolean(false);
+
+    long checked = 0;
     Draw(){
         setPreferredSize(
                 new Dimension(
@@ -24,8 +32,8 @@ public class Draw extends JPanel {
                 )
         );
         generateStanowiskaLayout();
-        addPositions();
-
+        optimizeQueue();
+        //checkGniazda();
     }
     @Override
     protected void paintComponent(Graphics g) {
@@ -189,21 +197,9 @@ public class Draw extends JPanel {
                 // POPRZEDNI DŁUŻSZY
                 // ==================================
 
-                if(previous.getLenght()
-                        > d.getLenght()) {
-
-                    baseStartX =
-
-                            previous.endX
-
-                                    -
-
-                                    (previous.getLenghtT()
-                                            * scale)
-
-                                    +
-
-                                    scale;
+                if(previous.getLenght() > d.getLenght()) {
+                    // SPRAWDŹ TO JESZCZE
+                    baseStartX = previous.endX - ((d.getLenghtT() * (d.getKt()-1)) * scale) + scale;
                 }
 
                 // ==================================
@@ -212,28 +208,7 @@ public class Draw extends JPanel {
 
                 else {
 
-                    baseStartX =
-
-                            previous.startX
-
-                                    +
-
-                                    (previous.getTpz()
-                                            * scale)
-
-                                    +
-
-                                    (previous.getLenghtT()
-                                            * scale)
-
-                                    -
-
-                                    (d.getTpz()
-                                            * scale)
-
-                                    +
-
-                                    scale;
+                    baseStartX = previous.startX + (previous.getTpz() * scale) + (previous.getLenghtT() * scale) - (d.getTpz() * scale) + scale;
                 }
             }
 
@@ -444,10 +419,10 @@ public class Draw extends JPanel {
             g2.setColor(Color.BLACK);
             for (int i = 1; i < d.getKt(); i++) {
                 g2.drawLine(
-                        (int)(d.startX -d.getTpz() + (d.lenghtT * i* scale)),
+                        (int)(d.startX + d.getTpz() + (d.lenghtT * i* scale)),
                         (int)d.startY+5
                         ,
-                        (int)(d.startX-d.getTpz() + (d.lenghtT*i* scale)),
+                        (int)(d.startX + d.getTpz() + (d.lenghtT*i* scale)),
                         (int)d.endY-5
                 );
             }
@@ -470,5 +445,289 @@ public class Draw extends JPanel {
 
             }
         }
+    }
+    /*void checkGniazda(){
+
+        for(String key :
+                data.Stanowiska.keySet()) {
+
+            double minStart =
+                    Double.MAX_VALUE;
+
+            double maxEnd = 0;
+
+            for(Datatemplate d :
+                    data.Queue) {
+
+                if(!d.getJGS()
+                        .equals(key))
+                    continue;
+
+                if(d.startX < minStart) {
+
+                    minStart = d.startX;
+                }
+
+                if(d.endX > maxEnd) {
+
+                    maxEnd = d.endX;
+                }
+            }
+
+            double totalTime =
+                    (maxEnd - minStart)
+                            / scale;
+
+            System.out.println(
+                    key
+                            +
+                            " -> "
+                            +
+                            totalTime
+                            +
+                            "h"
+            );
+
+            // ==================================
+            // LIMIT 42h
+            // ==================================
+
+            if(totalTime > 42) {
+
+                System.out.println(
+                        "PRZEKROCZENIE 42h"
+                );
+            }
+        }
+    }*/
+    void optimizeQueue(){
+
+        ExecutorService pool =
+
+                Executors.newFixedThreadPool(
+                        Runtime.getRuntime()
+                                .availableProcessors()
+                );
+
+        for(int i = 0;
+            i < data.Groups.size();
+            i++){
+
+            int fixed = i;
+
+            pool.submit(() -> {
+
+                ArrayList<
+                        ArrayList<Datatemplate>
+                        > local =
+
+                        new ArrayList<>();
+
+                for(ArrayList<Datatemplate> g :
+                        data.Groups){
+
+                    local.add(
+                            new ArrayList<>(g)
+                    );
+                }
+
+                Collections.swap(
+                        local,
+                        0,
+                        fixed
+                );
+
+                permute(
+                        local,
+                        1
+                );
+            });
+        }
+
+        pool.shutdown();
+
+        try {
+
+            pool.awaitTermination(
+                    Long.MAX_VALUE,
+                    TimeUnit.NANOSECONDS
+            );
+
+        } catch(Exception e){
+
+            e.printStackTrace();
+        }
+    }
+    void resetPositions(){
+
+        for(Datatemplate d :
+                data.Queue){
+
+            d.startX = 0;
+            d.endX = 0;
+            d.startY = 0;
+            d.endY = 0;
+        }
+    }
+    double calculateMakespan(){
+
+        double max = 0;
+
+        for(Datatemplate d :
+                data.Queue){
+
+            if(d.endX > max){
+
+                max = d.endX;
+            }
+        }
+
+        return
+                (max - startX)
+                        / scale;
+    }
+    void permute(ArrayList<ArrayList<Datatemplate>> arr, int index){
+        double bestMakespan =
+                Double.MAX_VALUE;
+        // ==================================
+        // STOP
+        // ==================================
+
+        if(found.get())
+            return;
+
+        // ==================================
+        // BUILD QUEUE
+        // ==================================
+
+        data.Queue.clear();
+
+        for(ArrayList<Datatemplate> g : arr){
+
+            data.Queue.addAll(g);
+        }
+
+        // ==================================
+        // RESET
+        // ==================================
+
+        resetPositions();
+
+        // ==================================
+        // LICZENIE
+        // ==================================
+
+        addPositions();
+
+        // ==================================
+        // PRUNING
+        // ==================================
+
+        double makespan =
+                calculateMakespan();
+
+        if(makespan < bestMakespan){
+
+            bestMakespan = makespan;
+
+            System.out.println(
+                    "BEST: "
+                            +
+                            bestMakespan
+            );
+        }
+
+        // ==================================
+        // FOUND
+        // ==================================
+
+        if(index >= arr.size()){
+            checked++;
+
+            if(checked % 100 == 0){
+
+                System.out.println(
+                        "Checked: "
+                                +
+                                checked
+                );
+            }
+            if(checkAllGniazda()){
+
+                found.set(true);
+
+                System.out.println(
+                        "FOUND"
+                );
+            }
+
+            return;
+        }
+
+        // ==================================
+        // PERMUTACJE
+        // ==================================
+
+        for(int i = index;
+            i < arr.size();
+            i++){
+
+            Collections.swap(
+                    arr,
+                    i,
+                    index
+            );
+
+            permute(
+                    arr,
+                    index + 1
+            );
+
+            Collections.swap(
+                    arr,
+                    i,
+                    index
+            );
+        }
+    }
+    boolean checkAllGniazda(){
+
+        for(String key :
+                data.Stanowiska.keySet()) {
+
+            double minStart =
+                    Double.MAX_VALUE;
+
+            double maxEnd = 0;
+
+            for(Datatemplate d :
+                    data.Queue) {
+
+                if(!d.getJGS()
+                        .equals(key))
+                    continue;
+
+                if(d.startX < minStart) {
+
+                    minStart = d.startX;
+                }
+
+                if(d.endX > maxEnd) {
+
+                    maxEnd = d.endX;
+                }
+            }
+
+            double totalTime =
+                    (maxEnd - minStart)
+                            / scale;
+
+            if(totalTime > 42){
+
+                return false;
+            }
+        }
+
+        return true;
     }
 }

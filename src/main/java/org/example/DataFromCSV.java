@@ -186,6 +186,10 @@ public class DataFromCSV {
             StanowiskaTemplate>
             Stanowiska = new Hashtable<>();
 
+    public ArrayList<
+            ArrayList<Datatemplate>
+            > Groups = new ArrayList<>();
+
     DataFromCSV() {
 
         try {
@@ -401,6 +405,40 @@ public class DataFromCSV {
                         Queue.add(copy);
                     }
                 }
+            }
+            // ======================================
+// GROUPS
+// ======================================
+
+            Hashtable<String,
+                    ArrayList<Datatemplate>>
+                    grouped = new Hashtable<>();
+
+            for(Datatemplate d : Queue){
+
+                String key =
+                        d.getPrzedmiot()
+                                +
+                                "_"
+                                +
+                                d.repeatID;
+
+                if(!grouped.containsKey(key)){
+
+                    grouped.put(
+                            key,
+                            new ArrayList<>()
+                    );
+                }
+
+                grouped.get(key).add(d);
+            }
+
+            for(String key : grouped.keySet()){
+
+                Groups.add(
+                        grouped.get(key)
+                );
             }
 
             // =================================
