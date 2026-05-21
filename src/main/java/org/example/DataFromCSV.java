@@ -280,25 +280,24 @@ public class DataFromCSV {
                 }
             }
 
-            // =================================
-            // GRUPOWANIE PO PRZEDMIOCIE
-            // =================================
+
+
+            // ======================================
+// GRUPOWANIE PO PRZEDMIOCIE
+// ======================================
 
             Hashtable<String,
                     ArrayList<Datatemplate>>
-                    byPart =
-                    new Hashtable<>();
+                    byPart = new Hashtable<>();
 
-            for(Datatemplate d : Dane) {
+            for(Datatemplate d : Dane){
 
                 if(!byPart.containsKey(
                         d.getPrzedmiot()
-                )) {
+                )){
 
                     byPart.put(
-
                             d.getPrzedmiot(),
-
                             new ArrayList<>()
                     );
                 }
@@ -308,36 +307,25 @@ public class DataFromCSV {
                 ).add(d);
             }
 
-            // =================================
-            // BUDOWANIE KOLEJKI
-            // =================================
+// ======================================
+// SORTOWANIE OPERACJI
+// ======================================
 
-            for(String key :
-                    byPart.keySet()) {
+            for(String key : byPart.keySet()){
 
-                ArrayList<Datatemplate>
-                        list =
+                ArrayList<Datatemplate> list =
                         byPart.get(key);
 
-                // =============================
-                // BUBBLE SORT
-                // =============================
-
-                for(int i = 0;
-                    i < list.size();
-                    i++) {
+                // bubble sort po op
+                for(int i = 0; i < list.size(); i++){
 
                     for(int j = i + 1;
                         j < list.size();
-                        j++) {
+                        j++){
 
-                        if(
-                                list.get(i).getOp()
-
-                                        >
-
-                                        list.get(j).getOp()
-                        ) {
+                        if(list.get(i).getOp()
+                                >
+                                list.get(j).getOp()){
 
                             Datatemplate temp =
                                     list.get(i);
@@ -354,45 +342,61 @@ public class DataFromCSV {
                         }
                     }
                 }
+            }
 
-                // =============================
-                // REPEAT
-                // =============================
+// ======================================
+// MAKSYMALNY REPEAT
+// ======================================
 
-                int repeat =
-                        list.get(0)
-                                .getRepeat();
+            int maxRepeat = 0;
 
-                for(int r = 0;
-                    r < repeat;
-                    r++) {
+            for(Datatemplate d : Dane){
 
-                    for(Datatemplate d :
-                            list) {
+                if(d.getRepeat() > maxRepeat){
+
+                    maxRepeat = d.getRepeat();
+                }
+            }
+
+// ======================================
+// BUDOWANIE KOLEJKI
+// ======================================
+
+            for(int repeatID = 0;
+                repeatID < maxRepeat;
+                repeatID++){
+
+                // operacje po przedmiotach
+                for(String key : byPart.keySet()){
+
+                    ArrayList<Datatemplate> list =
+                            byPart.get(key);
+
+                    // jeśli repeat istnieje
+                    if(repeatID >= list.get(0)
+                            .getRepeat()){
+
+                        continue;
+                    }
+
+                    // dodawanie operacji
+                    for(Datatemplate d : list){
 
                         Datatemplate copy =
                                 new Datatemplate(
 
                                         d.JGS,
-
                                         d.Przedmiot,
-
                                         d.op,
-
                                         d.tpz,
-
                                         d.kt,
-
                                         d.lenghtT,
-
                                         d.rprzyj,
-
                                         d.lenght,
-
                                         d.repeat
                                 );
 
-                        copy.repeatID = r;
+                        copy.repeatID = repeatID;
 
                         Queue.add(copy);
                     }

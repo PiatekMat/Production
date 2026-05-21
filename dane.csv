@@ -1,44 +1,44 @@
 ﻿JGS,Przedmiot,op,tpz,kt,nt*tj,rprzyj,Długość,l.powtorzen
 PM120,Wał z gwintem,10,0.2,2,2.28,2,4.76,2
-PM120,Trzepień,10,0.2,4,3.06,2,12.44,4
+PM120,Trzepień,10,0.2,4,3.06,2,12.44,1
 PM120,Wałek z gwinten,10,0.2,3,1.68,2,5.24,3
-PM120,Wałek,10,0.2,3,1.4,2,4.4,3
-PM120,Tuleja,10,0.3,3,3.3,2,10.2,3
-tub32,Wał z gwintem,20,0.2,2,0.95,5,2.1,2
-tub32,Wał z gwintem,30,0.6,2,5.32,5,11.24,2
-tub32,Trzepień,20,0.6,4,5.1,5,21,4
-tub32,Wałek z gwinten,20,0.2,3,0.7,5,2.3,3
-tub32,Wałek z gwinten,30,0.6,3,4.48,5,14.04,3
-tub32,Wałek,20,0.3,3,1.4,5,4.5,3
-tub32,Wałek,30,0.6,3,3.92,5,12.36,3
-tub32,Tuleja,20,2.1,3,7.7,5,25.2,3
+PM120,Wałek,10,0.2,3,1.4,2,4.4,4
+PM120,Tuleja,10,0.3,3,3.3,2,10.2,1
+tub32,Wał z gwintem,20,0.2,2,0.95,6,2.1,2
+tub32,Wał z gwintem,30,0.6,2,5.32,6,11.24,2
+tub32,Trzepień,20,0.6,4,5.1,6,21,1
+tub32,Wałek z gwinten,20,0.2,3,0.7,6,2.3,3
+tub32,Wałek z gwinten,30,0.6,3,4.48,6,14.04,3
+tub32,Wałek,20,0.3,3,1.4,6,4.5,4
+tub32,Wałek,30,0.6,3,3.92,6,12.36,4
+tub32,Tuleja,20,2.1,3,7.7,6,25.2,1
 fwa32,Wał z gwintem,0,0,0,0,2,0,2
-fwa32,Trzepień,30,0.3,4,2.55,2,10.5,4
-fwa32,Trzepień,50,0.4,4,1.7,2,7.2,4
+fwa32,Trzepień,30,0.3,4,2.55,2,10.5,1
+fwa32,Trzepień,50,0.4,4,1.7,2,7.2,1
 fwa32,Wałek z gwinten,70,0.5,3,1.4,2,4.7,3
-fwa32,Wałek,40,0.4,3,2.1,2,6.7,3
-fwa32,Tuleja,0,0,0,0,2,0,3
-sl,Wał z gwintem,60,0.5,2,0.95,1,2.4,2
-sl,Trzepień,40,0.1,4,0.68,1,2.82,4
-sl,Trzepień,60,0.1,4,0.34,1,1.46,4
-sl,Wałek z gwinten,50,0.1,3,0.42,1,1.36,3
-sl,Wałek z gwinten,80,0.1,3,1.12,1,3.46,3
-sl,Wałek,50,0.1,3,0.7,1,2.2,3
-sl,Tuleja,0,0,0,0,1,0,3
+fwa32,Wałek,40,0.4,3,2.1,2,6.7,4
+fwa32,Tuleja,0,0,0,0,2,0,1
+sl,Wał z gwintem,60,0.5,2,0.95,2,2.4,2
+sl,Trzepień,40,0.1,4,0.68,2,2.82,1
+sl,Trzepień,60,0.1,4,0.34,2,1.46,1
+sl,Wałek z gwinten,50,0.1,3,0.42,2,1.36,3
+sl,Wałek z gwinten,80,0.1,3,1.12,2,3.46,3
+sl,Wałek,50,0.1,3,0.7,2,2.2,4
+sl,Tuleja,0,0,0,0,2,0,1
 swa25,Wał z gwintem,70,0.1,2,5.32,4,10.74,2
-swa25,Trzepień,70,0.5,4,2.55,4,10.7,4
+swa25,Trzepień,70,0.5,4,2.55,4,10.7,1
 swa25,Wałek z gwinten,60,0.7,3,4.9,4,15.4,3
-swa25,Wałek,60,0.6,3,4.9,4,15.3,3
-swa25,Tuleja,0,0,0,0,4,0,3
+swa25,Wałek,60,0.6,3,4.9,4,15.3,4
+swa25,Tuleja,0,0,0,0,4,0,1
 zfc20,Wał z gwintem,40,0.4,2,4.37,2,9.14,2
 zfc20,Wał z gwintem,50,0.4,2,4.75,2,9.9,2
-zfc20,Trzepień,0,0,0,0,2,0,4
+zfc20,Trzepień,0,0,0,0,2,0,1
 zfc20,Wałek z gwinten,40,0.4,3,3.22,2,10.06,3
-zfc20,Wałek,0,0,0,0,2,0,3
-zfc20,Tuleja,0,0,0,0,2,0,3
+zfc20,Wałek,0,0,0,0,2,0,4
+zfc20,Tuleja,0,0,0,0,2,0,1
 soj10,Wał z gwintem,0,0,0,0,1,0,2
-soj10,Trzepień,0,0,0,0,1,0,4
+soj10,Trzepień,0,0,0,0,1,0,1
 soj10,Wałek z gwinten,0,0,0,0,1,0,3
-soj10,Wałek,0,0,0,0,1,0,3
-soj10,Tuleja,30,0.7,3,8.8,1,27.1,3
-soj10,Tuleja,40,0.4,3,3.96,1,12.28,3
+soj10,Wałek,0,0,0,0,1,0,4
+soj10,Tuleja,30,0.7,3,8.8,1,27.1,1
+soj10,Tuleja,40,0.4,3,3.96,1,12.28,1

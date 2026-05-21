@@ -72,6 +72,7 @@ public class Draw extends JPanel {
         }
         int x = startX;
         int y = startY;
+        int st_cr = 0;
         for(String key : data.Stanowiska.keySet()) {
 
             StanowiskaTemplate stanowisko = data.Stanowiska.get(key);
@@ -93,6 +94,11 @@ public class Draw extends JPanel {
                         x,
                         y,
                         windowWidth,
+                        y
+                );
+                g2.drawString(
+                        java.lang.String.valueOf(++st_cr),
+                        x - scale,
                         y
                 );
             }
@@ -137,12 +143,32 @@ public class Draw extends JPanel {
 
             Datatemplate previous = null;
 
-            for(int i = currentIndex - 1; i >= 0; i--) {
+            for(int i = currentIndex - 1;
+                i >= 0;
+                i--) {
 
-                Datatemplate prev = data.Queue.get(i);
+                Datatemplate prev =
+                        data.Queue.get(i);
 
-                if(prev.getPrzedmiot().equals(d.getPrzedmiot()) && prev.repeatID == d.repeatID && prev.getOp() < d.getOp()) {
+                // ==================================
+                // TEN SAM PRZEDMIOT
+                // TEN SAM REPEAT
+                // ==================================
+
+                if(
+                        prev.getPrzedmiot()
+                                .equals(
+                                        d.getPrzedmiot()
+                                )
+
+                                &&
+
+                                prev.repeatID
+                                        == d.repeatID
+                ) {
+
                     previous = prev;
+
                     break;
                 }
             }
@@ -154,41 +180,103 @@ public class Draw extends JPanel {
             double baseStartX;
 
             if(previous == null) {
+
                 baseStartX = startX;
+
             } else {
+
                 // ==================================
                 // POPRZEDNI DŁUŻSZY
                 // ==================================
-                if(previous.getLenght() > d.getLenght()) {
-                    baseStartX = previous.endX - (previous.getLenghtT() * scale) + scale;
+
+                if(previous.getLenght()
+                        > d.getLenght()) {
+
+                    baseStartX =
+
+                            previous.endX
+
+                                    -
+
+                                    (previous.getLenghtT()
+                                            * scale)
+
+                                    +
+
+                                    scale;
                 }
+
                 // ==================================
                 // AKTUALNY DŁUŻSZY
                 // ==================================
+
                 else {
-                    baseStartX = previous.startX + (previous.getTpz() * scale) +
-                            (previous.getLenghtT() * scale) - (d.getTpz() * scale) + scale;
+
+                    baseStartX =
+
+                            previous.startX
+
+                                    +
+
+                                    (previous.getTpz()
+                                            * scale)
+
+                                    +
+
+                                    (previous.getLenghtT()
+                                            * scale)
+
+                                    -
+
+                                    (d.getTpz()
+                                            * scale)
+
+                                    +
+
+                                    scale;
                 }
             }
+
             // ======================================
             // STANOWISKA JGS
             // ======================================
-            StanowiskaTemplate stanowisko = data.Stanowiska.get(d.getJGS());
+
+            StanowiskaTemplate stanowisko =
+                    data.Stanowiska.get(
+                            d.getJGS()
+                    );
 
             int bestStanowisko = -1;
-            double bestStart = Double.MAX_VALUE;
-            double finalStartX = baseStartX;
-            double finalEndX = baseStartX + (d.getLenght() * scale);
+
+            double bestStart =
+                    Double.MAX_VALUE;
+
+            double finalStartX =
+                    baseStartX;
+
+            double finalEndX =
+                    baseStartX
+                            +
+                            (d.getLenght()
+                                    * scale);
 
             // ======================================
             // ITERACJA PO STANOWISKACH
             // ======================================
 
-            for(int stanowiskoID = 0; stanowiskoID < stanowisko.getIloscStanowisk(); stanowiskoID++) {
+            for(int stanowiskoID = 0;
+                stanowiskoID
+                        < stanowisko.getIloscStanowisk();
+                stanowiskoID++) {
 
-                double tempStart = baseStartX;
+                double tempStart =
+                        baseStartX;
 
-                double tempEnd = tempStart + (d.getLenght() * scale);
+                double tempEnd =
+                        tempStart
+                                +
+                                (d.getLenght()
+                                        * scale);
 
                 boolean changed = true;
 
@@ -197,20 +285,60 @@ public class Draw extends JPanel {
                 // ==================================
 
                 while(changed) {
+
                     changed = false;
-                    for(Datatemplate placed : data.Queue) {
-                        if(placed == d || placed.endX == 0 || !placed.getJGS().equals(d.getJGS()) || placed.stanowiskoID != stanowiskoID)
+
+                    for(Datatemplate placed :
+                            data.Queue) {
+
+                        if(
+                                placed == d
+
+                                        ||
+
+                                        placed.endX == 0
+
+                                        ||
+
+                                        !placed.getJGS()
+                                                .equals(
+                                                        d.getJGS()
+                                                )
+
+                                        ||
+
+                                        placed.stanowiskoID
+                                                != stanowiskoID
+                        )
                             continue;
-                        boolean overlap = tempStart < placed.endX && tempEnd > placed.startX;
+
+                        boolean overlap =
+
+                                tempStart
+                                        < placed.endX
+
+                                        &&
+
+                                        tempEnd
+                                                > placed.startX;
 
                         if(overlap) {
+
                             // ==================
                             // PRZESUNIĘCIE
                             // ==================
-                            tempStart = placed.endX;
 
-                            tempEnd = tempStart + (d.getLenght() * scale);
+                            tempStart =
+                                    placed.endX;
+
+                            tempEnd =
+                                    tempStart
+                                            +
+                                            (d.getLenght()
+                                                    * scale);
+
                             changed = true;
+
                             break;
                         }
                     }
@@ -222,13 +350,17 @@ public class Draw extends JPanel {
 
                 if(tempStart < bestStart) {
 
-                    bestStart = tempStart;
+                    bestStart =
+                            tempStart;
 
-                    bestStanowisko = stanowiskoID;
+                    bestStanowisko =
+                            stanowiskoID;
 
-                    finalStartX = tempStart;
+                    finalStartX =
+                            tempStart;
 
-                    finalEndX = tempEnd;
+                    finalEndX =
+                            tempEnd;
                 }
             }
 
@@ -240,11 +372,18 @@ public class Draw extends JPanel {
 
             d.endX = finalEndX;
 
-            d.stanowiskoID = bestStanowisko;
+            d.stanowiskoID =
+                    bestStanowisko;
 
-            d.startY = stanowisko.wymiaryStanowisk[bestStanowisko][0];
+            d.startY =
+                    stanowisko
+                            .wymiaryStanowisk
+                            [bestStanowisko][0];
 
-            d.endY = stanowisko.wymiaryStanowisk[bestStanowisko][1];
+            d.endY =
+                    stanowisko
+                            .wymiaryStanowisk
+                            [bestStanowisko][1];
         }
     }
     void Procesy(Graphics2D g2){
@@ -312,7 +451,11 @@ public class Draw extends JPanel {
                         (int)d.endY-5
                 );
             }
-
+            g2.drawString(
+                    String.valueOf(d.getOp()),
+                    (int)d.startX,
+                    (int)d.startY+10
+            );
         }
     }
     void generateStanowiskaLayout() {
@@ -324,6 +467,7 @@ public class Draw extends JPanel {
                 stanowisko.wymiaryStanowisk[j][0] = y;
                 y += 20;
                 stanowisko.wymiaryStanowisk[j][1] = y;
+
             }
         }
     }
