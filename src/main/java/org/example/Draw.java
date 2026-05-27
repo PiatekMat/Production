@@ -24,8 +24,7 @@ public class Draw extends JPanel {
                 )
         );
         generateStanowiskaLayout();
-        addPositions();
-
+        System.out.println(generujPermutacjeArrayList());
     }
     @Override
     protected void paintComponent(Graphics g) {
@@ -124,266 +123,123 @@ public class Draw extends JPanel {
             );
         }
     }
-    void addPositions(){
+    void addPositions(ArrayList<ArrayList<Datatemplate>> Queue){
 
         // ==========================================
         // ITERACJA PO KOLEJCE
         // ==========================================
 
-        for(int currentIndex = 0;
-            currentIndex < data.Queue.size();
-            currentIndex++) {
+        for(int currentIndex = 0; currentIndex < Queue.size(); currentIndex++) {
 
-            Datatemplate d =
-                    data.Queue.get(currentIndex);
-
-            // ======================================
-            // SZUKANIE POPRZEDNIEJ OPERACJI
-            // ======================================
-
-            Datatemplate previous = null;
-
-            for(int i = currentIndex - 1;
-                i >= 0;
-                i--) {
-
-                Datatemplate prev =
-                        data.Queue.get(i);
-
-                // ==================================
-                // TEN SAM PRZEDMIOT
-                // TEN SAM REPEAT
-                // ==================================
-
-                if(
-                        prev.getPrzedmiot()
-                                .equals(
-                                        d.getPrzedmiot()
-                                )
-
-                                &&
-
-                                prev.repeatID
-                                        == d.repeatID
-                ) {
-
-                    previous = prev;
-
-                    break;
+            ArrayList<Datatemplate> SingleQueue = Queue.get(currentIndex);
+            for(int i = 0; i < SingleQueue.size(); i++){
+                Datatemplate Current = SingleQueue.get(i);
+                Datatemplate previous;
+                if(i - 1 < 0){
+                    previous = null;
+                }else{
+                    previous = SingleQueue.get(i-1);
                 }
-            }
 
             // ======================================
             // START TECHNOLOGICZNY
             // ======================================
 
-            double baseStartX;
+                double baseStartX;
 
-            if(previous == null) {
-
-                baseStartX = startX;
-
-            } else {
-
-                // ==================================
-                // POPRZEDNI DŁUŻSZY
-                // ==================================
-
-                if(previous.getLenght()
-                        > d.getLenght()) {
-
-                    baseStartX =
-
-                            previous.endX
-
-                                    -
-
-                                    (previous.getLenghtT()
-                                            * scale)
-
-                                    +
-
-                                    scale;
-                }
-
-                // ==================================
-                // AKTUALNY DŁUŻSZY
-                // ==================================
-
-                else {
-
-                    baseStartX =
-
-                            previous.startX
-
-                                    +
-
-                                    (previous.getTpz()
-                                            * scale)
-
-                                    +
-
-                                    (previous.getLenghtT()
-                                            * scale)
-
-                                    -
-
-                                    (d.getTpz()
-                                            * scale)
-
-                                    +
-
-                                    scale;
-                }
-            }
-
-            // ======================================
-            // STANOWISKA JGS
-            // ======================================
-
-            StanowiskaTemplate stanowisko =
-                    data.Stanowiska.get(
-                            d.getJGS()
-                    );
-
-            int bestStanowisko = -1;
-
-            double bestStart =
-                    Double.MAX_VALUE;
-
-            double finalStartX =
-                    baseStartX;
-
-            double finalEndX =
-                    baseStartX
-                            +
-                            (d.getLenght()
-                                    * scale);
-
-            // ======================================
-            // ITERACJA PO STANOWISKACH
-            // ======================================
-
-            for(int stanowiskoID = 0;
-                stanowiskoID
-                        < stanowisko.getIloscStanowisk();
-                stanowiskoID++) {
-
-                double tempStart =
-                        baseStartX;
-
-                double tempEnd =
-                        tempStart
-                                +
-                                (d.getLenght()
-                                        * scale);
-
-                boolean changed = true;
-
-                // ==================================
-                // SZUKANIE MIEJSCA
-                // ==================================
-
-                while(changed) {
-
-                    changed = false;
-
-                    for(Datatemplate placed :
-                            data.Queue) {
-
-                        if(
-                                placed == d
-
-                                        ||
-
-                                        placed.endX == 0
-
-                                        ||
-
-                                        !placed.getJGS()
-                                                .equals(
-                                                        d.getJGS()
-                                                )
-
-                                        ||
-
-                                        placed.stanowiskoID
-                                                != stanowiskoID
-                        )
-                            continue;
-
-                        boolean overlap =
-
-                                tempStart
-                                        < placed.endX
-
-                                        &&
-
-                                        tempEnd
-                                                > placed.startX;
-
-                        if(overlap) {
-
-                            // ==================
-                            // PRZESUNIĘCIE
-                            // ==================
-
-                            tempStart =
-                                    placed.endX;
-
-                            tempEnd =
-                                    tempStart
-                                            +
-                                            (d.getLenght()
-                                                    * scale);
-
-                            changed = true;
-
-                            break;
-                        }
+                if(previous == null) {
+                    baseStartX = startX;
+                } else {
+                    // ==================================
+                    // POPRZEDNI DŁUŻSZY
+                    // ==================================
+                    if(previous.getLenght() > Current.getLenght()) {
+                        baseStartX = previous.endX - (previous.getLenghtT() * scale) + scale;
+                    }
+                    // ==================================
+                    // AKTUALNY DŁUŻSZY
+                    // ==================================
+                    else {
+                        baseStartX = previous.startX + (previous.getTpz() * scale) + (previous.getLenghtT() * scale) - (Current.getTpz() * scale) + scale;
                     }
                 }
 
-                // ==================================
-                // WYBÓR LEPSZEGO
-                // ==================================
+                // ======================================
+                // STANOWISKA JGS
+                // ======================================
 
-                if(tempStart < bestStart) {
+                StanowiskaTemplate stanowisko = data.Stanowiska.get(Current.getJGS());
 
-                    bestStart =
-                            tempStart;
+                int bestStanowisko = -1;
 
-                    bestStanowisko =
-                            stanowiskoID;
+                double bestStart = Double.MAX_VALUE;
 
-                    finalStartX =
-                            tempStart;
+                double finalStartX = baseStartX;
 
-                    finalEndX =
-                            tempEnd;
+                double finalEndX = baseStartX + (Current.getLenght() * scale);
+
+                // ======================================
+                // ITERACJA PO STANOWISKACH
+                // ======================================
+
+                for(int stanowiskoID = 0; stanowiskoID < stanowisko.getIloscStanowisk(); stanowiskoID++) {
+                    double tempStart = baseStartX;
+                    double tempEnd = tempStart + (Current.getLenght() * scale);
+                    boolean changed = true;
+                    // ==================================
+                    // SZUKANIE MIEJSCA
+                    // ==================================
+
+                    while(changed) {
+                        changed = false;
+                        for(Datatemplate placed : data.Queue) {
+                            if(placed == Current || placed.endX == 0 || !placed.getJGS().equals(Current.getJGS()) || placed.stanowiskoID != stanowiskoID)
+                                continue;
+
+                            boolean overlap = tempStart < placed.endX && tempEnd > placed.startX;
+
+                            if(overlap) {
+
+                                // ==================
+                                // PRZESUNIĘCIE
+                                    // ==================
+
+                                tempStart = placed.endX;
+                                tempEnd = tempStart + (Current.getLenght() * scale);
+                                changed = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // ==================================
+                    // WYBÓR LEPSZEGO
+                    // ==================================
+
+                    if(tempStart < bestStart) {
+                        bestStart = tempStart;
+                        bestStanowisko = stanowiskoID;
+                        finalStartX = tempStart;
+                        finalEndX = tempEnd;
+                    }
                 }
-            }
 
-            // ======================================
-            // ZAPIS
-            // ======================================
+                // ======================================
+                // ZAPIS
+                // ======================================
 
-            d.startX = finalStartX;
+                Current.startX = finalStartX;
 
-            d.endX = finalEndX;
+                Current.endX = finalEndX;
 
-            d.stanowiskoID =
-                    bestStanowisko;
+                Current.stanowiskoID = bestStanowisko;
 
-            d.startY =
-                    stanowisko
+                Current.startY = stanowisko
                             .wymiaryStanowisk
                             [bestStanowisko][0];
 
-            d.endY =
-                    stanowisko
-                            .wymiaryStanowisk
-                            [bestStanowisko][1];
+                Current.endY = stanowisko.wymiaryStanowisk[bestStanowisko][1];
+            }
         }
     }
     void Procesy(Graphics2D g2){
@@ -471,4 +327,61 @@ public class Draw extends JPanel {
             }
         }
     }
+    Double JSGLenght(ArrayList<Datatemplate> stanowisko){
+        double minX = Double.MAX_VALUE;
+        double maxX = Double.MIN_VALUE;
+        double lenght = 0;
+        for (Datatemplate d : stanowisko){
+            if(d.startX < minX){
+                minX = d.startX;
+            }
+            if(d.endX > maxX){
+                maxX = d.endX;
+            }
+        }
+        lenght = maxX - minX;
+        return lenght;
+    }
+    // TODO: Zrobić sprawdzanie, czy mieści sie w gnieździe
+    boolean testAllLenght(ArrayList<ArrayList<Datatemplate>> lists, int maxRythm){
+        boolean fitIn = false;
+
+        ArrayList<Double> len = new ArrayList<>();
+        for (ArrayList<Datatemplate> Single)
+        for(String key : data.finalQueue.keySet()){
+            len.add(JSGLenght(data.finalQueue.get(key)));
+        }
+
+        for(Double d : len){
+            System.out.println(d);
+        }
+        return fitIn;
+    }
+    public ArrayList<ArrayList<ArrayList<Datatemplate>>> generujPermutacjeArrayList() {
+        // Pobieramy same ArrayList z Hashtable
+        ArrayList<ArrayList<Datatemplate>> lists = new ArrayList<>(data.finalQueue.values());
+        ArrayList<ArrayList<ArrayList<Datatemplate>>> wynik = new ArrayList<>();
+        permutuj(lists, 0, wynik);
+        return wynik;
+    }
+    // TODO: Dorobić wywalenie algorytmu jak znajdzie
+    private void permutuj(ArrayList<ArrayList<Datatemplate>> lists, int index, ArrayList<ArrayList<ArrayList<Datatemplate>>> wynik) {
+
+        if (index == lists.size()) {
+            addPositions(lists);
+            return;
+        }
+        for (int i = index; i < lists.size(); i++) {
+            zamien(lists, index, i);
+            permutuj(lists, index + 1, wynik);
+            // Backtracking
+            zamien(lists, index, i);
+        }
+    }
+    private void zamien(ArrayList<ArrayList<Datatemplate>> lists, int i, int j) {
+        ArrayList<Datatemplate> temp = lists.get(i);
+        lists.set(i, lists.get(j));
+        lists.set(j, temp);
+    }
+
 }

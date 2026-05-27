@@ -186,6 +186,11 @@ public class DataFromCSV {
             StanowiskaTemplate>
             Stanowiska = new Hashtable<>();
 
+    public Hashtable<String, ArrayList<Datatemplate>> finalQueue = new Hashtable<>();
+
+
+
+
     DataFromCSV() {
 
         try {
@@ -351,9 +356,7 @@ public class DataFromCSV {
             int maxRepeat = 0;
 
             for(Datatemplate d : Dane){
-
                 if(d.getRepeat() > maxRepeat){
-
                     maxRepeat = d.getRepeat();
                 }
             }
@@ -362,20 +365,14 @@ public class DataFromCSV {
 // BUDOWANIE KOLEJKI
 // ======================================
 
-            for(int repeatID = 0;
-                repeatID < maxRepeat;
-                repeatID++){
-
+            for(int repeatID = 0; repeatID < maxRepeat; repeatID++){
                 // operacje po przedmiotach
                 for(String key : byPart.keySet()){
 
-                    ArrayList<Datatemplate> list =
-                            byPart.get(key);
+                    ArrayList<Datatemplate> list = byPart.get(key);
 
                     // jeśli repeat istnieje
-                    if(repeatID >= list.get(0)
-                            .getRepeat()){
-
+                    if(repeatID >= list.get(0).getRepeat()){
                         continue;
                     }
 
@@ -399,14 +396,45 @@ public class DataFromCSV {
                         copy.repeatID = repeatID;
 
                         Queue.add(copy);
+
                     }
+
                 }
             }
+            for(Datatemplate d : Queue){
+
+                String k =
+
+                        d.getPrzedmiot()
+
+                                + "_"
+
+                                + d.repeatID;
+
+                // ==============================
+                // NOWA LISTA
+                // ==============================
+
+                if(!finalQueue.containsKey(k)){
+
+                    finalQueue.put(
+                            k,
+                            new ArrayList<>()
+                    );
+                }
+
+                // ==============================
+                // DODANIE OPERACJI
+                // ==============================
+
+                finalQueue.get(k).add(d);
+            }
+
 
             // =================================
             // DEBUG
             // =================================
-
+/*
             for(Datatemplate d : Queue) {
 
                 System.out.println(
@@ -422,9 +450,18 @@ public class DataFromCSV {
 
                                 + d.repeatID
                 );
+            }*/
+            for (String key : finalQueue.keySet()) {
+                System.out.println("===========================================================");
+                for (Datatemplate d : finalQueue.get(key)){
+                    System.out.println(d.getPrzedmiot() + " " + d.getOp() + " " + d.repeatID + " " + d.repeat);
+                }
+
             }
 
             br.close();
+
+
 
         } catch(Exception e) {
 
