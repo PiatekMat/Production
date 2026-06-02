@@ -40,29 +40,24 @@ class Datatemplate {
 
     public int repeatID;
 
-    Datatemplate(){
+    public Datatemplate(Datatemplate d){
 
-        this.JGS = null;
+        this.JGS = d.JGS;
+        this.Przedmiot = d.Przedmiot;
+        this.op = d.op;
+        this.tpz = d.tpz;
+        this.kt = d.kt;
+        this.lenghtT = d.lenghtT;
+        this.rprzyj = d.rprzyj;
+        this.lenght = d.lenght;
+        this.repeat = d.repeat;
 
-        this.Przedmiot = null;
+        this.startX = d.startX;
+        this.endX = d.endX;
+        this.startY = d.startY;
+        this.endY = d.endY;
 
-        this.op = 0;
-
-        this.tpz = 0;
-
-        this.kt = 0;
-
-        this.lenghtT = 0;
-
-        this.rprzyj = 0;
-
-        this.lenght = 0;
-
-        this.repeat = 0;
-
-        this.repeatID = 0;
-
-        this.stanowiskoID = -1;
+        this.stanowiskoID = d.stanowiskoID;
     }
 
     Datatemplate(
@@ -141,6 +136,8 @@ class Datatemplate {
 // STANOWISKA
 // =========================================
 
+
+
 class StanowiskaTemplate {
 
     String nazwaStanowsika;
@@ -185,6 +182,11 @@ public class DataFromCSV {
     public Hashtable<String,
             StanowiskaTemplate>
             Stanowiska = new Hashtable<>();
+
+    public Hashtable<String, ArrayList<Datatemplate>> finalQueue = new Hashtable<>();
+
+
+
 
     public ArrayList<
             ArrayList<Datatemplate>
@@ -366,20 +368,14 @@ public class DataFromCSV {
 // BUDOWANIE KOLEJKI
 // ======================================
 
-            for(int repeatID = 0;
-                repeatID < maxRepeat;
-                repeatID++){
-
+            for(int repeatID = 0; repeatID < maxRepeat; repeatID++){
                 // operacje po przedmiotach
                 for(String key : byPart.keySet()){
 
-                    ArrayList<Datatemplate> list =
-                            byPart.get(key);
+                    ArrayList<Datatemplate> list = byPart.get(key);
 
                     // jeśli repeat istnieje
-                    if(repeatID >= list.get(0)
-                            .getRepeat()){
-
+                    if(repeatID >= list.get(0).getRepeat()){
                         continue;
                     }
 
@@ -406,63 +402,52 @@ public class DataFromCSV {
                     }
                 }
             }
-            // ======================================
-// GROUPS
-// ======================================
-
-            Hashtable<String,
-                    ArrayList<Datatemplate>>
-                    grouped = new Hashtable<>();
-
             for(Datatemplate d : Queue){
 
-                String key =
+                String k =
+
                         d.getPrzedmiot()
-                                +
-                                "_"
-                                +
-                                d.repeatID;
 
-                if(!grouped.containsKey(key)){
+                                + "_"
 
-                    grouped.put(
-                            key,
+                                + d.repeatID;
+
+                // ==============================
+                // NOWA LISTA
+                // ==============================
+
+                if(!finalQueue.containsKey(k)){
+
+                    finalQueue.put(
+                            k,
                             new ArrayList<>()
                     );
                 }
 
-                grouped.get(key).add(d);
+                // ==============================
+                // DODANIE OPERACJI
+                // ==============================
+
+                finalQueue.get(k).add(d);
             }
 
-            for(String key : grouped.keySet()){
-
-                Groups.add(
-                        grouped.get(key)
-                );
-            }
 
             // =================================
             // DEBUG
             // =================================
 
-            for(Datatemplate d : Queue) {
 
-                System.out.println(
+            for (String key : finalQueue.keySet()) {
+                System.out.println("===========================================================");
+                for (Datatemplate d : finalQueue.get(key)){
+                    System.out.println(d.getPrzedmiot() + " " + d.getOp() + " " + d.repeatID + " " + d.repeat);
+                }
 
-                        d.getPrzedmiot()
-                                + " "
-
-                                + d.getOp()
-                                + " "
-
-                                + d.getJGS()
-                                + " "
-
-                                + d.repeatID
-                );
             }
-
+            System.out.println("Groups: " + finalQueue.size());
             br.close();
+
+
 
         } catch(Exception e) {
 

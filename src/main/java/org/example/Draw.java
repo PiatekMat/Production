@@ -8,6 +8,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Draw extends JPanel {
     DataFromCSV data = new DataFromCSV();
@@ -20,10 +21,11 @@ public class Draw extends JPanel {
     // === SKALA ===
     static final int scale = 20;
 
-    AtomicBoolean found =
-            new AtomicBoolean(false);
 
-    long checked = 0;
+    AtomicBoolean found = new AtomicBoolean(false);
+    AtomicLong checked = new AtomicLong(0);
+    ArrayList<ArrayList<Datatemplate>> Queue = new ArrayList<>();
+
     Draw(){
         setPreferredSize(
                 new Dimension(
@@ -32,8 +34,7 @@ public class Draw extends JPanel {
                 )
         );
         generateStanowiskaLayout();
-        optimizeQueue();
-        //checkGniazda();
+        startMultithread();
     }
     @Override
     protected void paintComponent(Graphics g) {
@@ -132,305 +133,209 @@ public class Draw extends JPanel {
             );
         }
     }
-    void addPositions(){
+    void addPositions(ArrayList<ArrayList<Datatemplate>> Queue){
 
         // ==========================================
         // ITERACJA PO KOLEJCE
         // ==========================================
+        for(ArrayList<Datatemplate> group : Queue){
 
-        for(int currentIndex = 0;
-            currentIndex < data.Queue.size();
-            currentIndex++) {
+            for(Datatemplate d : group){
 
-            Datatemplate d =
-                    data.Queue.get(currentIndex);
-
-            // ======================================
-            // SZUKANIE POPRZEDNIEJ OPERACJI
-            // ======================================
-
-            Datatemplate previous = null;
-
-            for(int i = currentIndex - 1;
-                i >= 0;
-                i--) {
-
-                Datatemplate prev =
-                        data.Queue.get(i);
-
-                // ==================================
-                // TEN SAM PRZEDMIOT
-                // TEN SAM REPEAT
-                // ==================================
-
-                if(
-                        prev.getPrzedmiot()
-                                .equals(
-                                        d.getPrzedmiot()
-                                )
-
-                                &&
-
-                                prev.repeatID
-                                        == d.repeatID
-                ) {
-
-                    previous = prev;
-
-                    break;
-                }
+                d.startX = 0;
+                d.endX = 0;
+                d.startY = 0;
+                d.endY = 0;
+                d.stanowiskoID = -1;
             }
+        }
+
+        for(int currentIndex = 0; currentIndex < Queue.size(); currentIndex++) {
+
+            ArrayList<Datatemplate> SingleQueue = Queue.get(currentIndex);
+            for(int i = 0; i < SingleQueue.size(); i++){
+                Datatemplate Current = SingleQueue.get(i);
+                Datatemplate previous;
+                if(i - 1 < 0){
+                    previous = null;
+                }else{
+                    previous = SingleQueue.get(i-1);
+                }
 
             // ======================================
             // START TECHNOLOGICZNY
             // ======================================
 
-            double baseStartX;
+                double baseStartX;
 
-            if(previous == null) {
-
-                baseStartX = startX;
-
-            } else {
-
-                // ==================================
-                // POPRZEDNI DŁUŻSZY
-                // ==================================
-
-                if(previous.getLenght() > d.getLenght()) {
-                    // SPRAWDŹ TO JESZCZE
-                    baseStartX = previous.endX - ((d.getLenghtT() * (d.getKt()-1)) * scale) + scale;
-                }
-
-                // ==================================
-                // AKTUALNY DŁUŻSZY
-                // ==================================
-
-                else {
-
-                    baseStartX = previous.startX + (previous.getTpz() * scale) + (previous.getLenghtT() * scale) - (d.getTpz() * scale) + scale;
-                }
-            }
-
-            // ======================================
-            // STANOWISKA JGS
-            // ======================================
-
-            StanowiskaTemplate stanowisko =
-                    data.Stanowiska.get(
-                            d.getJGS()
-                    );
-
-            int bestStanowisko = -1;
-
-            double bestStart =
-                    Double.MAX_VALUE;
-
-            double finalStartX =
-                    baseStartX;
-
-            double finalEndX =
-                    baseStartX
-                            +
-                            (d.getLenght()
-                                    * scale);
-
-            // ======================================
-            // ITERACJA PO STANOWISKACH
-            // ======================================
-
-            for(int stanowiskoID = 0;
-                stanowiskoID
-                        < stanowisko.getIloscStanowisk();
-                stanowiskoID++) {
-
-                double tempStart =
-                        baseStartX;
-
-                double tempEnd =
-                        tempStart
-                                +
-                                (d.getLenght()
-                                        * scale);
-
-                boolean changed = true;
-
-                // ==================================
-                // SZUKANIE MIEJSCA
-                // ==================================
-
-                while(changed) {
-
-                    changed = false;
-
-                    for(Datatemplate placed :
-                            data.Queue) {
-
-                        if(
-                                placed == d
-
-                                        ||
-
-                                        placed.endX == 0
-
-                                        ||
-
-                                        !placed.getJGS()
-                                                .equals(
-                                                        d.getJGS()
-                                                )
-
-                                        ||
-
-                                        placed.stanowiskoID
-                                                != stanowiskoID
-                        )
-                            continue;
-
-                        boolean overlap =
-
-                                tempStart
-                                        < placed.endX
-
-                                        &&
-
-                                        tempEnd
-                                                > placed.startX;
-
-                        if(overlap) {
-
-                            // ==================
-                            // PRZESUNIĘCIE
-                            // ==================
-
-                            tempStart =
-                                    placed.endX;
-
-                            tempEnd =
-                                    tempStart
-                                            +
-                                            (d.getLenght()
-                                                    * scale);
-
-                            changed = true;
-
-                            break;
-                        }
+                if(previous == null) {
+                    baseStartX = startX;
+                } else {
+                    // ==================================
+                    // POPRZEDNI DŁUŻSZY
+                    // ==================================
+                    if(previous.getLenght() > Current.getLenght()) {
+                        baseStartX = previous.endX - (previous.getLenghtT() * scale) + scale;
+                    }
+                    // ==================================
+                    // AKTUALNY DŁUŻSZY
+                    // ==================================
+                    else {
+                        baseStartX = previous.startX + (previous.getTpz() * scale) + (previous.getLenghtT() * scale) - (Current.getTpz() * scale) + scale;
                     }
                 }
 
-                // ==================================
-                // WYBÓR LEPSZEGO
-                // ==================================
+                // ======================================
+                // STANOWISKA JGS
+                // ======================================
 
-                if(tempStart < bestStart) {
+                StanowiskaTemplate stanowisko = data.Stanowiska.get(Current.getJGS());
 
-                    bestStart =
-                            tempStart;
+                int bestStanowisko = -1;
 
-                    bestStanowisko =
-                            stanowiskoID;
+                double bestStart = Double.MAX_VALUE;
 
-                    finalStartX =
-                            tempStart;
+                double finalStartX = baseStartX;
 
-                    finalEndX =
-                            tempEnd;
+                double finalEndX = baseStartX + (Current.getLenght() * scale);
+
+                // ======================================
+                // ITERACJA PO STANOWISKACH
+                // ======================================
+
+                for(int stanowiskoID = 0; stanowiskoID < stanowisko.getIloscStanowisk(); stanowiskoID++) {
+                    double tempStart = baseStartX;
+                    double tempEnd = tempStart + (Current.getLenght() * scale);
+                    boolean changed = true;
+                    // ==================================
+                    // SZUKANIE MIEJSCA
+                    // ==================================
+
+                    while(changed) {
+                        changed = false;
+                        for(ArrayList<Datatemplate> group : Queue) {
+                            for(Datatemplate placed : group){
+                                if(placed == Current || placed.endX == 0 || !placed.getJGS().equals(Current.getJGS()) || placed.stanowiskoID != stanowiskoID)
+                                    continue;
+
+                                boolean overlap = tempStart < placed.endX && tempEnd > placed.startX;
+
+                                if(overlap) {
+
+                                    // ==================
+                                    // PRZESUNIĘCIE
+                                    // ==================
+
+                                    tempStart = placed.endX;
+                                    tempEnd = tempStart + (Current.getLenght() * scale);
+                                    changed = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    // ==================================
+                    // WYBÓR LEPSZEGO
+                    // ==================================
+
+                    if(tempStart < bestStart) {
+                        bestStart = tempStart;
+                        bestStanowisko = stanowiskoID;
+                        finalStartX = tempStart;
+                        finalEndX = tempEnd;
+                    }
                 }
-            }
 
-            // ======================================
-            // ZAPIS
-            // ======================================
+                // ======================================
+                // ZAPIS
+                // ======================================
 
-            d.startX = finalStartX;
+                Current.startX = finalStartX;
 
-            d.endX = finalEndX;
+                Current.endX = finalEndX;
 
-            d.stanowiskoID =
-                    bestStanowisko;
+                Current.stanowiskoID = bestStanowisko;
 
-            d.startY =
-                    stanowisko
+                Current.startY = stanowisko
                             .wymiaryStanowisk
                             [bestStanowisko][0];
 
-            d.endY =
-                    stanowisko
-                            .wymiaryStanowisk
-                            [bestStanowisko][1];
+                Current.endY = stanowisko.wymiaryStanowisk[bestStanowisko][1];
+            }
         }
     }
     void Procesy(Graphics2D g2){
-        for(Datatemplate d : data.Queue){
-            // =====================================
-            // KOLOR
-            // =====================================
-            switch (d.Przedmiot){
-                case "Wał z gwintem":
-                    g2.setColor(Color.BLUE);
-                    break;
+        for(ArrayList<Datatemplate> SingleQueue : Queue){
+            for(Datatemplate d : SingleQueue){
+                // =====================================
+                // KOLOR
+                // =====================================
+                switch (d.Przedmiot){
+                    case "Wał z gwintem":
+                        g2.setColor(Color.BLUE);
+                        break;
 
-                case "Trzepień":
-                    g2.setColor(Color.PINK);
-                    break;
+                    case "Trzepień":
+                        g2.setColor(Color.PINK);
+                        break;
 
-                case "Wałek z gwinten":
-                    g2.setColor(Color.GREEN);
-                    break;
+                    case "Wałek z gwinten":
+                        g2.setColor(Color.GREEN);
+                        break;
 
-                case "Wałek":
-                    g2.setColor(Color.YELLOW);
-                    break;
+                    case "Wałek":
+                        g2.setColor(Color.YELLOW);
+                        break;
 
-                case "Tuleja":
-                    g2.setColor(Color.RED);
-                    break;
+                    case "Tuleja":
+                        g2.setColor(Color.RED);
+                        break;
 
-                default:
-                    g2.setColor(Color.GRAY);
-                    break;
-            }
+                    default:
+                        g2.setColor(Color.GRAY);
+                        break;
+                }
 
-            // =====================================
-            // RYSOWANIE PASKA
-            // =====================================
+                // =====================================
+                // RYSOWANIE PASKA
+                // =====================================
 
-            g2.fillRect(
-                    (int)d.startX,
-                    (int)d.startY + 5,
-                    (int)(d.getLenght() * scale),
-                    height
-            );
-            
+                g2.fillRect(
+                        (int)d.startX,
+                        (int)d.startY + 5,
+                        (int)(d.getLenght() * scale),
+                        height
+                );
 
-            // =====================================
-            // NUMER OPERACJI
-            // =====================================
 
-            g2.setColor(Color.GRAY);
-            g2.fillRect(
-                    (int)d.startX,
-                    (int)d.startY + 5,
-                    (int)(d.getTpz() * scale),
-                    height
-            );
+                // =====================================
+                // NUMER OPERACJI
+                // =====================================
 
-            g2.setColor(Color.BLACK);
-            for (int i = 1; i < d.getKt(); i++) {
-                g2.drawLine(
-                        (int)(d.startX + d.getTpz() + (d.lenghtT * i* scale)),
-                        (int)d.startY+5
-                        ,
-                        (int)(d.startX + d.getTpz() + (d.lenghtT*i* scale)),
-                        (int)d.endY-5
+                g2.setColor(Color.GRAY);
+                g2.fillRect(
+                        (int)d.startX,
+                        (int)d.startY + 5,
+                        (int)(d.getTpz() * scale),
+                        height
+                );
+
+                g2.setColor(Color.BLACK);
+                for (int i = 1; i < d.getKt(); i++) {
+                    g2.drawLine(
+                            (int)(d.startX + d.getTpz() + (d.lenghtT * i* scale)),
+                            (int)d.startY+5
+                            ,
+                            (int)(d.startX + d.getTpz() + (d.lenghtT*i* scale)),
+                            (int)d.endY-5
+                    );
+                }
+                g2.drawString(
+                        String.valueOf(d.getOp()),
+                        (int)d.startX,
+                        (int)d.startY+10
                 );
             }
-            g2.drawString(
-                    String.valueOf(d.getOp()),
-                    (int)d.startX,
-                    (int)d.startY+10
-            );
         }
     }
     void generateStanowiskaLayout() {
@@ -446,71 +351,131 @@ public class Draw extends JPanel {
             }
         }
     }
-    /*void checkGniazda(){
 
-        for(String key :
-                data.Stanowiska.keySet()) {
+    double bestWorst = Double.MAX_VALUE;
+    boolean testAllLenght(ArrayList<ArrayList<Datatemplate>> lists, double maxRythm){
 
-            double minStart =
-                    Double.MAX_VALUE;
+        double worst = 0;
+        String worstJGS = "";
 
-            double maxEnd = 0;
+        Hashtable<String, Double> minStart =
+                new Hashtable<>();
 
-            for(Datatemplate d :
-                    data.Queue) {
+        Hashtable<String, Double> maxEnd =
+                new Hashtable<>();
 
-                if(!d.getJGS()
-                        .equals(key))
-                    continue;
+        boolean valid = true;
 
-                if(d.startX < minStart) {
+        for(ArrayList<Datatemplate> group : lists){
 
-                    minStart = d.startX;
+            for(Datatemplate d : group){
+
+                String jgs = d.getJGS();
+
+                if(!minStart.containsKey(jgs)){
+                    minStart.put(jgs, d.startX);
+                    maxEnd.put(jgs, d.endX);
                 }
 
-                if(d.endX > maxEnd) {
+                if(d.startX < minStart.get(jgs)){
+                    minStart.put(jgs, d.startX);
+                }
 
-                    maxEnd = d.endX;
+                if(d.endX > maxEnd.get(jgs)){
+                    maxEnd.put(jgs, d.endX);
                 }
             }
+        }
 
-            double totalTime =
-                    (maxEnd - minStart)
+        for(String jgs : minStart.keySet()){
+
+            double lenght =
+                    (maxEnd.get(jgs) - minStart.get(jgs))
                             / scale;
 
+            //System.out.println(
+                    //jgs + " -> " + lenght + "h"
+            //);
+
+            if(lenght > worst){
+                worst = lenght;
+                worstJGS = jgs;
+
+            }
+            if(lenght > maxRythm){
+                valid =  false;
+            }
+        }
+        if(worst < bestWorst){
+
+            bestWorst = worst;
+
             System.out.println(
-                    key
-                            +
-                            " -> "
-                            +
-                            totalTime
-                            +
-                            "h"
+                    "NOWY REKORD: "
+                            + bestWorst + " JGS: " + worstJGS
             );
+            for(String jgs : minStart.keySet()){
 
-            // ==================================
-            // LIMIT 42h
-            // ==================================
-
-            if(totalTime > 42) {
+                double lenght =
+                        (maxEnd.get(jgs) - minStart.get(jgs))
+                                / scale;
 
                 System.out.println(
-                        "PRZEKROCZENIE 42h"
+                        jgs + " -> " + lenght
                 );
             }
         }
-    }*/
-    void optimizeQueue(){
+        return valid;
+    }
+    ArrayList<ArrayList<Datatemplate>> deepCopy(
+            ArrayList<ArrayList<Datatemplate>> src){
+
+        ArrayList<ArrayList<Datatemplate>>
+                copy =
+                new ArrayList<>();
+
+        for(ArrayList<Datatemplate> group : src){
+
+            ArrayList<Datatemplate>
+                    newGroup =
+                    new ArrayList<>();
+
+            for(Datatemplate d : group){
+
+                newGroup.add(
+                        new Datatemplate(d)
+                );
+            }
+
+            copy.add(newGroup);
+        }
+
+        return copy;
+    }
+    void startMultithread(){
+
+        ArrayList<ArrayList<Datatemplate>>
+                lists =
+                new ArrayList<>(
+                        data.finalQueue.values()
+                );
+
+        int threads =
+                Runtime.getRuntime()
+                        .availableProcessors();
+
+        System.out.println(
+                "THREADS: "
+                        + threads
+        );
 
         ExecutorService pool =
-
                 Executors.newFixedThreadPool(
-                        Runtime.getRuntime()
-                                .availableProcessors()
+                        threads
                 );
 
         for(int i = 0;
-            i < data.Groups.size();
+            i < lists.size();
             i++){
 
             int fixed = i;
@@ -521,213 +486,77 @@ public class Draw extends JPanel {
                         ArrayList<Datatemplate>
                         > local =
 
-                        new ArrayList<>();
+                        deepCopy(lists);
 
-                for(ArrayList<Datatemplate> g :
-                        data.Groups){
-
-                    local.add(
-                            new ArrayList<>(g)
-                    );
-                }
-
-                Collections.swap(
+                zamien(
                         local,
                         0,
                         fixed
                 );
 
-                permute(
+                permutuj(
                         local,
-                        1
+                        1,
+                        new ArrayList<>()
                 );
             });
         }
 
         pool.shutdown();
 
-        try {
+        try{
 
             pool.awaitTermination(
                     Long.MAX_VALUE,
-                    TimeUnit.NANOSECONDS
+                    TimeUnit.DAYS
             );
 
-        } catch(Exception e){
+        }catch(Exception e){
 
             e.printStackTrace();
         }
     }
-    void resetPositions(){
-
-        for(Datatemplate d :
-                data.Queue){
-
-            d.startX = 0;
-            d.endX = 0;
-            d.startY = 0;
-            d.endY = 0;
-        }
+    public ArrayList<ArrayList<ArrayList<Datatemplate>>> generujPermutacjeArrayList() {
+        // Pobieramy same ArrayList z Hashtable
+        ArrayList<ArrayList<Datatemplate>> lists = new ArrayList<>(data.finalQueue.values());
+        ArrayList<ArrayList<ArrayList<Datatemplate>>> wynik = new ArrayList<>();
+        permutuj(lists, 0, wynik);
+        return wynik;
     }
-    double calculateMakespan(){
-
-        double max = 0;
-
-        for(Datatemplate d :
-                data.Queue){
-
-            if(d.endX > max){
-
-                max = d.endX;
-            }
-        }
-
-        return
-                (max - startX)
-                        / scale;
-    }
-    void permute(ArrayList<ArrayList<Datatemplate>> arr, int index){
-        double bestMakespan =
-                Double.MAX_VALUE;
-        // ==================================
-        // STOP
-        // ==================================
-
-        if(found.get())
+    // TODO: Dorobić wywalenie algorytmu jak znajdzie
+    private void permutuj(ArrayList<ArrayList<Datatemplate>> lists, int index, ArrayList<ArrayList<ArrayList<Datatemplate>>> wynik) {
+        if(found.get()){
             return;
-
-        // ==================================
-        // BUILD QUEUE
-        // ==================================
-
-        data.Queue.clear();
-
-        for(ArrayList<Datatemplate> g : arr){
-
-            data.Queue.addAll(g);
         }
+        addPositions(lists);
+        if (index == lists.size()) {
 
-        // ==================================
-        // RESET
-        // ==================================
+            long current = checked.incrementAndGet();
 
-        resetPositions();
-
-        // ==================================
-        // LICZENIE
-        // ==================================
-
-        addPositions();
-
-        // ==================================
-        // PRUNING
-        // ==================================
-
-        double makespan =
-                calculateMakespan();
-
-        if(makespan < bestMakespan){
-
-            bestMakespan = makespan;
-
-            System.out.println(
-                    "BEST: "
-                            +
-                            bestMakespan
-            );
-        }
-
-        // ==================================
-        // FOUND
-        // ==================================
-
-        if(index >= arr.size()){
-            checked++;
-
-            if(checked % 100 == 0){
-
+            if(current % 10000 == 0){
                 System.out.println(
-                        "Checked: "
-                                +
-                                checked
+                        "Checked: " + current
                 );
             }
-            if(checkAllGniazda()){
 
+            if(testAllLenght(lists, 42)){
                 found.set(true);
-
-                System.out.println(
-                        "FOUND"
-                );
+                Queue = lists;
+                return;
             }
-
             return;
         }
-
-        // ==================================
-        // PERMUTACJE
-        // ==================================
-
-        for(int i = index;
-            i < arr.size();
-            i++){
-
-            Collections.swap(
-                    arr,
-                    i,
-                    index
-            );
-
-            permute(
-                    arr,
-                    index + 1
-            );
-
-            Collections.swap(
-                    arr,
-                    i,
-                    index
-            );
+        for (int i = index; i < lists.size(); i++) {
+            zamien(lists, index, i);
+            permutuj(lists, index + 1, wynik);
+            // Backtracking
+            zamien(lists, index, i);
         }
     }
-    boolean checkAllGniazda(){
-
-        for(String key :
-                data.Stanowiska.keySet()) {
-
-            double minStart =
-                    Double.MAX_VALUE;
-
-            double maxEnd = 0;
-
-            for(Datatemplate d :
-                    data.Queue) {
-
-                if(!d.getJGS()
-                        .equals(key))
-                    continue;
-
-                if(d.startX < minStart) {
-
-                    minStart = d.startX;
-                }
-
-                if(d.endX > maxEnd) {
-
-                    maxEnd = d.endX;
-                }
-            }
-
-            double totalTime =
-                    (maxEnd - minStart)
-                            / scale;
-
-            if(totalTime > 42){
-
-                return false;
-            }
-        }
-
-        return true;
+    private void zamien(ArrayList<ArrayList<Datatemplate>> lists, int i, int j) {
+        ArrayList<Datatemplate> temp = lists.get(i);
+        lists.set(i, lists.get(j));
+        lists.set(j, temp);
     }
+
 }
